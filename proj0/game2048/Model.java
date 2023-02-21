@@ -113,28 +113,48 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+
         int si = board.size();
         for (int c=0; c<si;c++){
-            for (int r=si-1; r>=0;r-=1){
+            for (int r=si-1; r>=1;r-=1){
                 Tile t = board.tile(c,r);
-                if(t!=null)  {
-                    for (int r1=r-1;r1>=0;r-=1) {  //check if row2-0 match with row3
+                if(t!=null) {
+                    for (int r1 = r - 1; r1 >= 0; r1 -= 1) {
                         Tile t1 = board.tile(c, r1);
-                        if (t1 != null)&&t.value() == t1.value() {
+                        if ((t1 != null) && t.value() == t1.value()) {
                             board.move(c, r, t1);
                             changed = true;
                             score += 2 * t1.value();
+                            r=r1;
+                            break;
+
+                        } else {
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+
+        for (int c=0; c<si;c++){
+            for (int r=si-1; r>=0;r-=1){
+                Tile t = board.tile(c,r);
+                if(t==null)  {
+                    for (int r1=r-1;r1>=0;r1-=1) {
+                        Tile t1 = board.tile(c, r1);
+                        if (t1 != null) {
+                            board.move(c, r, t1);
+                            changed = true;
                             break;
                         }
 
                     }
-                    else{
-                        continue;
                 }
             }
         }
-    }
-        
         checkGameOver();
         if (changed) {
             setChanged();
