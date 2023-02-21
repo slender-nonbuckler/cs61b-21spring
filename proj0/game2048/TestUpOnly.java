@@ -15,10 +15,10 @@ public class TestUpOnly extends TestUtils {
     /** Move tiles up (no merging). */
     public void testUpNoMerge() {
         int[][] before = new int[][] {
-                {0, 0, 4, 0},
-                {0, 0, 0, 2},
+                {4, 0, 4, 0},
+                {4, 0, 0, 2},
                 {0, 0, 0, 0},
-                {0, 0, 0, 0},
+                {4, 0, 0, 0},
         };
         int[][] after = new int[][] {
                 {0, 0, 4, 2},
