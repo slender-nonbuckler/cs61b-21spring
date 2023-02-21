@@ -113,7 +113,28 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        int si = board.size();
+        for (int c=0; c<si;c++){
+            for (int r=si-1; r>=0;r-=1){
+                Tile t = board.tile(c,r);
+                if(t!=null)  {
+                    for (int r1=r-1;r1>=0;r-=1) {  //check if row2-0 match with row3
+                        Tile t1 = board.tile(c, r1);
+                        if (t1 != null)&&t.value() == t1.value() {
+                            board.move(c, r, t1);
+                            changed = true;
+                            score += 2 * t1.value();
+                            break;
+                        }
 
+                    }
+                    else{
+                        continue;
+                }
+            }
+        }
+    }
+        
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,8 +159,16 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
-        return false;
-    }
+        int si = b.size();
+        for (int i=0; i<si;i++){
+            for (int j=0; j<si;j++){
+                if(b.tile(i,j)==null)  {
+                    return true;
+                }
+                }
+            }return false;
+        }
+
 
     /**
      * Returns true if any tile is equal to the maximum valid value.
@@ -148,6 +177,15 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        int si = b.size();
+        for (int i = 0; i < si; i++) {
+            for (int j = 0; j < si; j++) {
+                if (b.tile(i,j)!=null && b.tile(i, j).value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+
+        }
         return false;
     }
 
@@ -159,6 +197,18 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        int si = b.size();
+        for (int i = 0; i < si; i++) {
+            for (int j = 0; j < si; j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                } else if (i < si - 1 && b.tile(i, j).value() == b.tile(i + 1, j).value()) {
+                    return true;
+                } else if (j < si - 1 && b.tile(i, j).value() == b.tile(i, j + 1).value()) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
