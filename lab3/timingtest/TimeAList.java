@@ -18,10 +18,32 @@ public class TimeAList {
     }
 
     public static void main(String[] args) {
+
         timeAListConstruction();
     }
 
     public static void timeAListConstruction() {
         // TODO: YOUR CODE HERE
+       int[] N={1000,2000,4000,8000,16000,32000,64000,128000};
+        AList<Integer> Ns = new AList<>();
+        AList<Double> times = new AList<>();
+        AList<Integer> opCounts = new AList<>();
+
+        for(int i=0; i<N.length;i++){
+            opCounts.addLast(N[i]);
+            Ns.addLast(N[i]);
+            AList<Integer> list = new AList<>();
+            Stopwatch sw = new Stopwatch();
+            int j=0;
+            while(j<N[i]){
+                list.addLast(j);
+                j++;
+            }
+            double timeInSeconds = sw.elapsedTime();
+            times.addLast(timeInSeconds);
+        }
+
+        printTimingTable( Ns,  times,  opCounts);
+
     }
 }

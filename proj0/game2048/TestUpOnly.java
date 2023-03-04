@@ -16,9 +16,9 @@ public class TestUpOnly extends TestUtils {
     public void testUpNoMerge() {
         int[][] before = new int[][] {
                 {4, 0, 4, 0},
-                {4, 0, 0, 2},
-                {0, 0, 0, 0},
+                {8, 0, 0, 2},
                 {4, 0, 0, 0},
+                {0, 0, 0, 0},
         };
         int[][] after = new int[][] {
                 {0, 0, 4, 2},

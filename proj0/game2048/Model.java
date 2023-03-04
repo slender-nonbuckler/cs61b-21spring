@@ -129,7 +129,7 @@ public class Model extends Observable {
                                 r = r1;
                                 break;
 
-                            }
+                            }else{break;}
                             }
 
                             }
