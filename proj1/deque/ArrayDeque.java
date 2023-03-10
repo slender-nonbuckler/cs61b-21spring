@@ -133,6 +133,7 @@ public class ArrayDeque<T> {
             if (items.length>size0 && size<items.length/4){
                 resizedown();
             }
+
             return Returnitem;
         }
     }

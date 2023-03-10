@@ -57,8 +57,12 @@ public class ArrayDequeTest {
             A.addFirst(9);
             A.addLast(10);
             A.addFirst(11);
-            A.removeFirst();
-            A.removeFirst();
+
+            System.out.println("Removed item: " +A.removeFirst()); // Debugging line
+
+
+            System.out.println("Removed item: " + A.removeFirst()); // Debugging line
+
             A.removeLast();
             A.removeLast();
             A.removeFirst();
