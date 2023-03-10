@@ -40,7 +40,7 @@ public class ArrayDequeTest {
     }
 
         @Test
-        public void remove() {
+        public void fillupandempty() {
         /* assertEquals for comparison of ints takes two arguments:
         assertEquals(expected, actual).
         if it is false, then the assertion will be false,
@@ -57,16 +57,17 @@ public class ArrayDequeTest {
             A.addFirst(9);
             A.addLast(10);
             A.addFirst(11);
-            A.addLast(12);
             A.removeFirst();
             A.removeFirst();
             A.removeLast();
             A.removeLast();
             A.removeFirst();
             A.removeFirst();
+            A.removeLast();
+            A.removeFirst();
 
 
-            Integer[] expected = {7};
+            Integer[] expected = {null};
 
             for (int i=0;i<expected.length;i++) {
                 assertEquals("should have the same value", expected[i], A.get(i));

@@ -68,6 +68,8 @@ public class ArrayDeque<T> {
 
         }
         items=a;
+        NF=items.length-1;
+        NL=size;
     }
     public void addFirst(T x) {
         if (size == 0) {
