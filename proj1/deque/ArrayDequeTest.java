@@ -108,7 +108,7 @@ public class ArrayDequeTest {
             }
         }
         for(int i=0;i<A.size();i++){
-        System.out.println(A.get(i));}
+        System.out.println(A.get(i));};
         System.out.println("size is"+A.size());
 
     }

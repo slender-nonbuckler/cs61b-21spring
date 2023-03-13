@@ -29,7 +29,7 @@ public class ArrayDeque<T> {
     }
     public void printDeque(){
         for(int i=1;i<=size;i++){
-            System.out.println(items[i]);//may need to check this
+            System.out.print(items[i]+" ");//may need to check this
         }
     }
     /*help function- minusone; return the index before the give index
@@ -75,6 +75,7 @@ public class ArrayDeque<T> {
         if (size == 0) {
             items[0] = x;
             NF=minusone(0);
+            NL=plusone(0);
             size++;
         }
         else {
@@ -99,6 +100,7 @@ public class ArrayDeque<T> {
     public void addLast(T x) {
         if (size == 0) {
             items[0] = x;
+            NF=minusone(0);
             NL=plusone(0);
             size++;
         }
