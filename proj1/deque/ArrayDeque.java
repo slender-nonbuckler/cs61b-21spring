@@ -63,8 +63,8 @@ public class ArrayDeque<T> {
         if (NF < NL) {
             System.arraycopy(items, NF+1, a, 0, size);
         } else {
-            System.arraycopy(items, NF+1, a, 0, size-NF-1);
-            System.arraycopy(items,0,a,size-NF-1,NF+1);
+            System.arraycopy(items, NF+1, a, 0, items.length-NF-1);
+            System.arraycopy(items,0,a,items.length-NF-1,size-(items.length-NF-1));
 
         }
         items=a;
