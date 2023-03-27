@@ -1,6 +1,9 @@
 package deque;
 
 import org.junit.Test;
+
+import java.sql.SQLOutput;
+
 import static org.junit.Assert.*;
 
 
@@ -131,4 +134,61 @@ public class LinkedListDequeTest {
 
 
     }
-}
+    @Test
+    /* check if null is return when removing from an empty LinkedListDeque. */
+    public void LDITeratortest() {
+
+
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        lld1.addFirst(5);
+        lld1.addFirst(23);
+        lld1.addLast(42);
+        int pos = 1;
+        //iteration
+        for (int i : lld1) {
+            System.out.println(i);
+
+            System.out.println(lld1.get(pos));
+            assertEquals("Should have the same value", i, (int) lld1.get(pos));
+            pos++;
+        }
+    }
+    @Test
+        public void LDOBJECTEQUAL() {
+
+
+            LinkedListDeque<Integer> lld2 = new LinkedListDeque<Integer>();
+
+            LinkedListDeque<Integer> o = new LinkedListDeque<Integer>();
+            int o1 = 1;
+            ArrayDeque<Integer>o2=new ArrayDeque<Integer>();
+            assertEquals("Should have the same value",lld2.equals(o1), false);
+            assertEquals("Should have the same value",lld2.equals(o2), false);
+            System.out.print(lld2.equals(o));
+                assertEquals("Should have the same value",lld2.equals(o), true);
+        lld2.addFirst(5);
+        lld2.addFirst(23);
+        lld2.addLast(42);
+        o.addFirst(23);
+        o.addLast(42);
+        o.addLast(12);
+        assertEquals("Should have the same value",lld2.equals(o), false);
+            }
+
+    @Test
+    public void LLDgetrecursive() {
+        LinkedListDeque<Integer> lld2 = new LinkedListDeque<Integer>();
+        assertEquals("Should have the same value",lld2.getRecursive(1), null);
+        lld2.addFirst(5);
+        assertEquals("Should have the same value",lld2.getRecursive(2), null);
+        lld2.addFirst(23);
+        lld2.addLast(42);
+        assertEquals("Should have the same value",(int)lld2.getRecursive(3), 42);
+        assertEquals("Should have the same value",lld2.getRecursive(-1), null);
+    }
+
+
+
+
+    }
+

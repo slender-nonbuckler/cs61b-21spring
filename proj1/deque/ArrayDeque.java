@@ -1,6 +1,7 @@
 package deque;
+import java.util.Iterator;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
     private T[] items;
     //Next first and Next Last index
     private int NF;
@@ -16,17 +17,15 @@ public class ArrayDeque<T> {
         NL=0;
     }
 
-    public boolean isEmpty(){
-        if(size==0){
-            return true;
-        }
-        else{
-            return false;
-        }
+    @Override
+    public boolean isEmpty() {
+        return Deque.super.isEmpty();
     }
+    @Override
     public int size(){
         return size;
     }
+    @Override
     public void printDeque(){
         for(int i=1;i<=size;i++){
             System.out.print(items[i]+" ");//may need to check this
@@ -71,6 +70,7 @@ public class ArrayDeque<T> {
         NF=items.length-1;
         NL=size;
     }
+    @Override
     public void addFirst(T x) {
         if (size == 0) {
             items[0] = x;
@@ -80,49 +80,54 @@ public class ArrayDeque<T> {
         }
         else {
             // check whether array full
+            
             items[NF] = x;
             size++;
             if(size== items.length) {
                 resizeup(items.length * 2);
             }
             //find the next first index
-            while (items[NF] != null) {
-                NF = minusone(NF);
-            }
-            //find the next last index
-            while (items[NL] != null) {
-                NL = plusone(NL);
+            if(size!=items.length) {
+                while (items[NF] != null) {
+                    NF = minusone(NF);
+                }
+                //find the next last index
+                while (items[NL] != null) {
+                    NL = plusone(NL);
+                }
             }
         }
 
     }
-
+    @Override
     public void addLast(T x) {
         if (size == 0) {
             items[0] = x;
-            NF=minusone(0);
-            NL=plusone(0);
+            NF = minusone(0);
+            NL = plusone(0);
             size++;
-        }
-        else {
+        } else {
             // check whether array full
 
             items[NL] = x;
             size++;
-            if(size== items.length) {
+            if (size == items.length) {
                 resizeup(items.length * 2);
             }
+
             //find the next first index
-            while (items[NF] != null) {
-                NF = minusone(NF);
+                while (items[NF] != null) {
+                    NF = minusone(NF);
+                }
+                //find the next last index
+                while (items[NL] != null) {
+                    NL = plusone(NL);
+                }
             }
-            //find the next last index
-            while (items[NL] != null) {
-                NL = plusone(NL);
-            }
+
         }
 
-    }
+    @Override
     public T removeFirst(){
         if(size==0){
             return null;
@@ -139,7 +144,7 @@ public class ArrayDeque<T> {
             return Returnitem;
         }
     }
-
+    @Override
     public T removeLast(){
         if(size==0){
             return null;
@@ -154,12 +159,55 @@ public class ArrayDeque<T> {
         return Returnitem;
 
     }
+    @Override
     public T get(int i){
         return items[i];
     }
 
+    public  Iterator<T> iterator(){
+        return new ADIterator();
+    }
+    private class ADIterator implements Iterator{
+        int wispos;
+        int step;
+        public ADIterator(){
+            wispos=NF+1;
+            if (wispos==items.length){
+                wispos=0;
+            }
+            step=0;
+        }
+        public boolean hasNext(){
+            return (step<size);
+        }
 
+        public T next(){
+            if (wispos==items.length){
+                wispos=0;
+            }
+            T returnitem = get(wispos);
+            wispos+=1;
+            step+=1;
+            return returnitem;
+        }
+    }
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ArrayDeque)) {
+            return false;
+        }
+        int pos = 1;
+        ArrayDeque<T> o1 = (ArrayDeque<T>) o;
+        if (o1.size != this.size) {
+            return false;
+        }
+        for (T i : o1) {
+            if (i != o1.get(pos)) {
+                return false;
+            }
 
-
+        }
+        return true;
+    }
     }
 

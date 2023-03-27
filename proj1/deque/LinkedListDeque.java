@@ -1,6 +1,7 @@
 package deque;
+import java.util.Iterator;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Deque<T>,Iterable<T> {
     private class Intnode {
         public T item;
         public Intnode next;
@@ -24,7 +25,7 @@ public class LinkedListDeque<T> {
         sentinel.prev = sentinel;
         size = 0;
     }
-
+    @Override
     public void addFirst(T x) {
         sentinel.next= new Intnode( sentinel,x,sentinel.next);
         sentinel.next.next.prev=sentinel.next;
@@ -34,28 +35,22 @@ public class LinkedListDeque<T> {
     public T getFirst() {
         return sentinel.next.item;
     }
-
+    @Override
     public void addLast(T x) {
         size += 1;
         sentinel.prev=new Intnode(sentinel.prev,x,sentinel);
         sentinel.prev.prev.next=sentinel.prev;
 
     }
-    public boolean isEmpty(){
-        if(size==0){
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
+    @Override
     public void printDeque(){
+        Intnode p= sentinel;
         for(int i=1;i<=size;i++){
-            Intnode p= sentinel;
             p=p.next;
-            System.out.println(p.item);//may need to check this
+            System.out.print(p.item+" ");
         }
     }
+    @Override
     public T removeFirst() {
         if (isEmpty()) {
             return null;
@@ -67,6 +62,7 @@ public class LinkedListDeque<T> {
         return first;
 
     }
+    @Override
     public T removeLast(){
             if(isEmpty()) {
                 return null;
@@ -77,6 +73,7 @@ public class LinkedListDeque<T> {
             size-=1;
             return last;
             }
+    @Override
     public T get(int x){
         Intnode p= sentinel;
         for(int i=1;i<=x;i++){
@@ -85,18 +82,63 @@ public class LinkedListDeque<T> {
         }
         return p.item;
     }
-    /*
-    public int getRecursive(int x){
-        if(x==0){
-            return item;
+
+    public T getRecursivehelper(Intnode curr, int x){
+        if(x==1){
+            return curr.item;
         }
-        return sentinel.next.getRecursive(x-1); // not sure what's wrong
+        return getRecursivehelper(curr.next,x-1);
+        }
+     public T getRecursive(int x){
+        if(x<1||x>this.size){
+            return null;
         }
 
-     */
+        return getRecursivehelper(sentinel.next,x);
+     }
 
+
+    @Override
     public int size() {
         return size;
+    }
+
+    public Iterator<T> iterator(){
+        return new LDIterator();
+    }
+    private class LDIterator implements Iterator{
+        Intnode wisP;
+        public LDIterator(){
+            wisP=sentinel.next;
+        }
+        public boolean hasNext(){
+            return (wisP.item!=null);
+        }
+
+        public T next(){
+            T returnitem = wisP.item;
+            wisP=wisP.next;
+            return returnitem;
+        }
+    }
+    @Override
+    public boolean equals(Object o){
+        if (!(o instanceof LinkedListDeque)){
+            return false;
+        }
+        LinkedListDeque<T> o1= (LinkedListDeque<T>) o;
+        if(o1.size!=this.size){
+            return false;
+        }
+        for(T i:o1 ) {
+            int pos = 1;
+            if (i != this.get(pos)) {
+                return false;
+            }
+            pos+=1;
+        }
+            return true;
+
     }
 }
 
