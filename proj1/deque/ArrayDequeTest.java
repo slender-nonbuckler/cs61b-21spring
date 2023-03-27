@@ -31,10 +31,10 @@ public class ArrayDequeTest {
         A.addLast(10);
         A.addLast(11);
         for(int i=0;i<A.size();i++){
-
+            int ab=(i+1)/2;
             A.removeFirst();
-            A.addLast(i);
-        }
+            A.addLast(ab);
+            int abc = A.get(0);}
 
         Integer[] expected = { 6, 4, 5, 7, 8, 10, 11,9};
 
