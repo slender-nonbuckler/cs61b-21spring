@@ -14,7 +14,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
         items = (T[]) new Object[size0];
         size = 0;
         NF=0;
-        NL=0;
+        NL=1;
     }
 
     @Override
@@ -56,6 +56,8 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
         System.arraycopy(items, NF+1, a, 0, size-NF-1);
         System.arraycopy(items,0,a,size-NF-1,NF+1);
         items = a;
+        NF=items.length-1;
+        NL=size;
     }
     public void resizedown() {
         T[] a = (T[]) new Object[items.length / 2];
@@ -72,6 +74,14 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
     }
     @Override
     public void addFirst(T x) {
+        if (size == items.length) {
+            resizeup(2 * items.length);
+        }
+        items[NF] = x;
+        NF = minusone(NF);
+        size++;
+    }
+    /*
         if (size == 0) {
             items[0] = x;
             NF=minusone(0);
@@ -80,7 +90,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
         }
         else {
             // check whether array full
-            
+
             items[NF] = x;
             size++;
             if(size== items.length) {
@@ -97,11 +107,17 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
                 }
             }
         }
-
-    }
+    }*/
     @Override
     public void addLast(T x) {
-        if (size == 0) {
+        if (size == items.length) {
+            resizeup(2 * items.length);
+        }
+        items[NL] = x;
+        NL = plusone(NL);
+        size++;
+    }
+        /*if (size == 0) {
             items[0] = x;
             NF = minusone(0);
             NL = plusone(0);
@@ -125,7 +141,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
                 }
             }
 
-        }
+        }*/
 
     @Override
     public T removeFirst(){

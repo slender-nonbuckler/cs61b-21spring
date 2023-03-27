@@ -30,9 +30,13 @@ public class ArrayDequeTest {
         A.addFirst(9);
         A.addLast(10);
         A.addLast(11);
+        for(int i=0;i<A.size();i++){
 
+            A.removeFirst();
+            A.addLast(i);
+        }
 
-        Integer[] expected = {9, 6, 4, 5, 7, 8, 10, 11};
+        Integer[] expected = { 6, 4, 5, 7, 8, 10, 11,9};
 
         for (int i = 0; i < expected.length; i++) {
             assertEquals("should have the same value", expected[i], A.get(i));
