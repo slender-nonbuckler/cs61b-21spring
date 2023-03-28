@@ -180,11 +180,24 @@ public class LinkedListDequeTest {
         LinkedListDeque<Integer> lld2 = new LinkedListDeque<Integer>();
         assertEquals("Should have the same value",lld2.getRecursive(1), null);
         lld2.addFirst(5);
-        assertEquals("Should have the same value",lld2.getRecursive(2), null);
+        assertEquals("Should have the same value",(int)lld2.getRecursive(0), 5);
         lld2.addFirst(23);
         lld2.addLast(42);
         assertEquals("Should have the same value",(int)lld2.getRecursive(3), 42);
         assertEquals("Should have the same value",lld2.getRecursive(-1), null);
+    }
+    @Test
+    public void LLDget1() {
+        LinkedListDeque<Integer> LinkedListDeque = new LinkedListDeque<Integer>();
+        LinkedListDeque.addFirst(0);
+        LinkedListDeque.addFirst(1);
+        LinkedListDeque.addLast(2);
+        LinkedListDeque.addFirst(3);
+        LinkedListDeque.addFirst(4);
+        LinkedListDeque.removeFirst();
+        LinkedListDeque.addFirst(6);
+        LinkedListDeque.get(1);
+        assertEquals("Should have the same value", (int) LinkedListDeque.get(1), 6);
     }
 
 
