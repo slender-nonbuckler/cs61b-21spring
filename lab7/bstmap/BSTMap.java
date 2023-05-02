@@ -9,7 +9,7 @@ public class BSTMap<K extends Comparable<K>,V> implements Map61B<K,V> {
 
     private Node root;
 
-    int size = 0;
+    private int size = 0;
 
     /** Returns the value corresponding to KEY or null if no such value exists. */
     @Override
