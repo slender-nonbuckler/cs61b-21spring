@@ -1,0 +1,32 @@
+What would you like L to be?: 10
+
+Enter # strings to insert into hashmap.ULLMap: 10000
+class hashmap.ULLMap: 0.39 sec
+
+Enter # strings to insert into your hashmap.MyHashMap: 10000
+class hashmap.MyHashMap: 0.03 sec
+
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.01 sec
+
+This program inserts lexicographically increasing Stringsinto Maps as <String, Integer> pairs.
+
+Enter # strings to insert into hashmap.ULLMap: 10000
+class hashmap.ULLMap: 0.93 sec
+
+Enter # strings to insert into hashmap.MyHashMap: 10000
+class hashmap.MyHashMap: 0.03 sec
+
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.01 sec
+
+when input is in order of lexicographically-increasing order,BSTMap is good.
+
+
+Enter # strings to insert into each map: 1000000
+class hashmap.MyHashMapALBuckets: 2.05 sec
+class hashmap.MyHashMapLLBuckets: 1.84 sec
+class hashmap.MyHashMapTSBuckets: 2.15 sec
+class hashmap.MyHashMapHSBuckets: 1.87 sec
+class hashmap.MyHashMapPQBuckets: 1.80 sec
+
