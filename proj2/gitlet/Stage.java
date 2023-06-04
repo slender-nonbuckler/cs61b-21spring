@@ -1,14 +1,16 @@
 package gitlet;
-import java.util.HashMap;
+import java.io.Serializable;
+import java.util.TreeMap;
 import java.util.ArrayList;
-public class Stage {
-    private HashMap<String, String> stageadd;
+public class Stage implements Serializable {
+    private TreeMap<String, String> stageadd;
     private ArrayList<String> stagerm;
 
     public Stage() {
-        stageadd = new HashMap<>();
+        stageadd = new TreeMap<>();
         stagerm = new ArrayList<>();
     }
+
 
     public void stageadd_put(String filename, String sha1) {
 
@@ -50,7 +52,7 @@ public class Stage {
     }
 
 
-    public HashMap<String, String> getStageadd() {
+    public TreeMap<String, String> getStageadd() {
 
         return stageadd;
     }
@@ -61,7 +63,7 @@ public class Stage {
     }
 
     public void clear() {
-        stageadd = new HashMap<String, String>();
+        stageadd = new TreeMap<String, String>();
         stagerm = new ArrayList<String>();
     }
 }

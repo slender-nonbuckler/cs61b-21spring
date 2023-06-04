@@ -68,7 +68,7 @@ public class Main {
             case "checkout":
                 validate_checkout(args);
                 break;
-            // TODO: FILL THE REST IN
+
             default:
                 validate_initialized();
                 validate_commandexist();
@@ -93,14 +93,14 @@ public class Main {
             String branchname = args[1];
             Repository.checkout_command3(branchname);
         } else if (args.length == 3) {
-            if (args[2] != "--") {
+            if (!args[1].equals("--")) {
                 System.out.println("Incorrect operands");
                 System.exit(0);
             }
-            String filename = args[1];
+            String filename = args[2];
             Repository.checkout_command1(filename);
         } else if (args.length == 4) {
-            if (args[2] != "--") {
+            if (!args[2].equals("--")) {
                 System.out.println("Incorrect operands");
                 System.exit(0);
             }

@@ -5,8 +5,9 @@ import gitlet.Utils.*;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
+
 
 // TODO: any imports you need here
 
@@ -39,14 +40,15 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = Utils.join(CWD, ".gitlet");
+    /** The file store stage class-including stageadd and stagerm */
+    public static final File STAGE_File = Utils.join(GITLET_DIR,"stage","stagearea");
     /** current Branch name */
     private static String BRANCH;
     /** Map for stageadd and stageremove
      * stored in stageArea
      */
-    private static Stage StageArea;
+    private static Stage StageArea = new Stage();
 
-    /* TODO: fill in the rest of this class. */
     /**
     * TODO: create the .gitlet directory
      * TODO: has the initial commit under branch master
@@ -72,7 +74,10 @@ public class Repository {
             }
         }
         BRANCH = "MASTER";
-        Utils.writeObject(HEAD, BRANCH);
+        Utils.writeContents(HEAD, BRANCH);
+        StageArea = new Stage();
+        Utils.writeObject(STAGE_File, StageArea);
+
 
     }
     public static void updateHEAD(String selfsha1) {
@@ -85,16 +90,16 @@ public class Repository {
             } catch (IOException e) {
                 throw new IllegalArgumentException(e.getMessage());
             }
-            Utils.writeObject(ref_heads,selfsha1);
         }
+        Utils.writeContents(ref_heads,selfsha1);
     }
 
 
-    public static void init_command(){
-        Commit initCommit = new Commit("initial commit",null,null);
+    public static void init_command() {
+        Commit initCommit = new Commit("initial commit",new TreeMap<>(),null);
         initCommit.changetimestamp(new Date(0));
         initCommit.saveCommit();
-        updateHEAD(initCommit.findOwnID());
+        updateHEAD(initCommit.getOwnID());
     }
 
     /**
@@ -111,12 +116,13 @@ public class Repository {
     file content is content bytes.
      */
     public static void saveBlob(File file) {
-        byte [] bytes = Utils.readContents(file);
+        String content = Utils.readContentsAsString(file);
+
         String blob_hash = getsha1(file);
         File newblob = Utils.join(GITLET_DIR,"OBJECT","BLOB",blob_hash);
         try {
             newblob.createNewFile();// error when the file exists.
-            Utils.writeObject(newblob, bytes);
+            Utils.writeContents(newblob, content);
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -138,6 +144,7 @@ public class Repository {
          *  remove this file from the stagearea.
          */
         File to_add = new File (filename);
+        StageArea = Utils.readObject(STAGE_File, Stage.class);
         if (to_add.exists()) {
             String blob_hash = getsha1(to_add);
             //check if in last commit
@@ -150,6 +157,7 @@ public class Repository {
                     saveBlob(to_add);
                 }
             }
+            Utils.writeObject(STAGE_File, StageArea);
         }
         else {
             System.out.println("File does not exist");
@@ -167,7 +175,7 @@ public class Repository {
     }
 
     public static void commit_command (String msg) {
-
+        StageArea = Utils.readObject(STAGE_File, Stage.class);
         if (StageArea.getStageadd().isEmpty() && StageArea.getStagerm().isEmpty()) {
             System.out.println("No changes added to the commit");
             return;
@@ -175,21 +183,20 @@ public class Repository {
         else if (msg.equals("")) {
             System.out.println("Please enter a commit message");
         }
-        Commit newcommit = ObtianLastCommit();
-        newcommit.changetimestamp(new Date());
-        newcommit.updatemessage(msg);
-        newcommit.updateParentID(newcommit.findOwnID());
-        HashMap<String, String> newblobmap = newcommit.getBlobsha1();
+        Commit curr = ObtianLastCommit();
+        TreeMap<String, String> newblobmap = curr.getBlobsha1();
         for (String filename : StageArea.getStageadd().keySet()) {
             newblobmap.put(filename,StageArea.getStageadd().get(filename));
         }
         for (String rmfile : StageArea.getStagerm()) {
             newblobmap.remove(rmfile);
         }
-        newcommit.updateblobmap(newblobmap);
+        Commit newcommit = new Commit(msg, newblobmap, curr.getOwnID());
         newcommit.saveCommit();
-        updateHEAD(newcommit.findOwnID());
+        updateHEAD(newcommit.getOwnID());
         StageArea.clear();
+        Utils.writeObject(STAGE_File, StageArea);
+
     }
     /**
      * if in stageadd, remove it from the map.
@@ -197,13 +204,19 @@ public class Repository {
      * if tracked by commit, put it in stagerm and
      delete it in the CWD*/
     public static void rm_command(String filename) {
-
+        StageArea = Utils.readObject(STAGE_File, Stage.class);
         Commit curr_commit = ObtianLastCommit();
         if (StageArea.stageadd_havefile(filename)) {
+            String blob_name = StageArea.getStageadd().get(filename);
             StageArea.stageadd_rm(filename);
+            System.out.println(blob_name);
+            File blob = Utils.join(GITLET_DIR,"OBJECT","BLOB",blob_name);
+            blob.delete();
+            Utils.writeObject(STAGE_File, StageArea);
         }
         else if (curr_commit.containfile(filename)) {
             StageArea.stagerm_put(filename);
+            Utils.writeObject(STAGE_File, StageArea);
             Utils.restrictedDelete(filename);
         }
         else {
@@ -213,9 +226,9 @@ public class Repository {
 
     public static void logprint(Commit curr) {
         System.out.println("===");
-        System.out.println("commit " + curr.getBlobsha1());
+        System.out.println("commit " + curr.getOwnID());
         System.out.println("Date: " + curr.getTime());
-        System.out.println(curr.getMessage() + "/n");
+        System.out.println(curr.getMessage() + "\n");
     }
     /**Start from the headcommit to initial commit
      * printout the commit information including id,time&message.
@@ -227,6 +240,7 @@ public class Repository {
             logprint(curr_commit);
             curr_commit = Commit.fromFile(curr_commit.getParentID());
         }
+        logprint(curr_commit);
     }
     /**print logs of all commits in the commit folder
      */
@@ -273,12 +287,13 @@ public class Repository {
         System.out.println("*" + curr);
         List<String> all_heads = Utils.plainFilenamesIn(ref_heads);
         for (String i : all_heads) {
-            if (i != curr) {
+            if (!i.equals(curr)) {
                 System.out.println(i);
             }
         }
         System.out.println();
         //print stageadd
+        StageArea = Utils.readObject(STAGE_File, Stage.class);
         System.out.println("=== Staged Files ===");
         for (String i : StageArea.getStageadd().keySet()) {
             System.out.println(i);
@@ -307,16 +322,17 @@ public class Repository {
     public static void basic_checkout(Commit commit,String filename) {
         if (commit.getBlobsha1() != null) {
             for (String i : commit.getBlobsha1().keySet()) {
-                if (i == filename) {
+                if (i.equals(filename)) {
                     String hashcode = commit.getBlobsha1().get(i);
                     File BLOB = Utils.join(GITLET_DIR,"OBJECT","BLOB",hashcode);
-                    byte [] cur_file = Utils.readContents(BLOB);
-                    Utils.writeContents(GITLET_DIR, cur_file);
+                    String cur_file = Utils.readContentsAsString(BLOB);
+                    File file = Utils.join(CWD,filename);
+                    Utils.writeContents(file, cur_file);
+                    return;
                 }
-                else {
-                    System.out.println("File does not exist in that commit.");
-                }
+
             }
+            System.out.println("File does not exist in that commit.");
         }
     }
 
@@ -331,7 +347,7 @@ public class Repository {
             */
     // check if the commit tree has this ID
     public static boolean containID(Commit commit, String ID) {
-        if(commit.findOwnID() == ID) {
+        if(commit.getOwnID() == ID) {
             return true;
         } else if (commit.getParentID() == null) {
             return false;

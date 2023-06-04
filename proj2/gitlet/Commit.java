@@ -5,9 +5,11 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.Formatter;
-import java.util.HashMap;
+import java.text.DateFormat;
+import java.util.TreeMap;
+import java.util.Locale;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -22,7 +24,7 @@ public class Commit implements Serializable {
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
-     * JQ: variables: timestamp, a hashmap for blobs( file name : blob reference)
+     * JQ: variables: timestamp, a TreeMap for blobs( file name : blob reference)
      * a string for parent hashcode and a string for ownhashcode
      * a mapping( file name : second parent reference) for merging
      * Method: getownID
@@ -35,7 +37,7 @@ public class Commit implements Serializable {
 
     private Date timestamp;
 
-    private HashMap<String,String> blobmap;
+    private TreeMap<String,String> blobmap;
 
     private String parentID;
 
@@ -46,7 +48,7 @@ public class Commit implements Serializable {
 
     /** make the initial commit
      */
-    public Commit(String msg,HashMap<String, String> blob, String parentID) {
+    public Commit(String msg,TreeMap<String, String> blob, String parentID) {
         this.message = msg;
         this.timestamp = new Date();
         this.blobmap = blob;
@@ -58,22 +60,27 @@ public class Commit implements Serializable {
 
         return parentID;
     }
+
+    public String getOwnID() {
+
+        return ownID;
+    }
+
+
     public String getMessage() {
         return this.message;
     }
 
     public String getTime() {
-        Formatter formatter = new Formatter();
-        formatter.format("Date: %ta %tb %td %tT %tY %tz", this.timestamp);
-        String formatted_date = formatter.toString();
-        return  formatted_date;
+        DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
+        return dateFormat.format(this.timestamp);
     }
 
 
 
 
     public void saveCommit() {
-        String CommitSHA1 = this.findOwnID();
+        String CommitSHA1 = this.getOwnID();
         File CommitFile = Utils.join(".gitlet","OBJECT","COMMIT",CommitSHA1);
         if (!CommitFile.exists()) {
             try {
@@ -111,8 +118,8 @@ public class Commit implements Serializable {
 
     public String findOwnID() {
         byte [] commit = Utils.serialize(this);
-        String ownID = Utils.sha1(commit);
-        return ownID;
+        String selfID = Utils.sha1(commit);
+        return selfID;
     }
 
     public void changetimestamp (Date date) {
@@ -125,7 +132,7 @@ public class Commit implements Serializable {
         this.message = msg;
     }
 
-    public void updateblobmap(HashMap<String, String> blob) {
+    public void updateblobmap(TreeMap<String, String> blob) {
 
         this.blobmap = blob;
     }
@@ -134,7 +141,7 @@ public class Commit implements Serializable {
         this.parentID = ID;
     }
 
-    public HashMap<String, String> getBlobsha1() {
+    public TreeMap<String, String> getBlobsha1() {
 
         return blobmap;
     }
