@@ -106,7 +106,7 @@ public class Main {
             }
             String id = args[1];
             String filename = args[3];
-            Repository.checkout_command2(id, filename);
+            Repository.checkout_command2(filename, id);
         } else {
             throw new RuntimeException(
                     "Incorrect operands");

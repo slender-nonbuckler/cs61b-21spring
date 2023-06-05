@@ -347,7 +347,8 @@ public class Repository {
             */
     // check if the commit tree has this ID
     public static boolean containID(Commit commit, String ID) {
-        if(commit.getOwnID() == ID) {
+        if(commit.getOwnID().equals(ID)) {
+
             return true;
         } else if (commit.getParentID() == null) {
             return false;
@@ -356,10 +357,21 @@ public class Repository {
             return (containID(next_commit, ID));
         }
     }
+    //return the commit in the commit tree with the given ID
+    public static Commit commitintree(Commit commit, String ID) {
+        if(commit.getOwnID().equals(ID)) {
+            return commit;
+        } else if (commit.getParentID() == null) {
+            return null;
+        } else {
+            Commit next_commit = Commit.fromFile(commit.getParentID());
+            return (commitintree(next_commit, ID));
+        }
+    }
     public static void checkout_command2(String filename,String ID) {
         Commit curr_commit = ObtianLastCommit();
         if (containID(curr_commit,ID)) {
-            basic_checkout(curr_commit,filename);
+            basic_checkout(commitintree(curr_commit, ID),filename);
         }
         else {
             System.out.println("No commit with that id exists");
