@@ -316,7 +316,7 @@ public class Repository {
      * 1. checkout -- file name
      * --find the file in the head commit
      * --use its hashcode find the blob
-     * --Util.write it in CWD(will overwirte if it exists)
+     * --Util.write it in CWD(will overwrite if it exists)
 
      */
     public static void basic_checkout(Commit commit,String filename) {
@@ -433,6 +433,12 @@ public class Repository {
             Utils.writeContents(GITLET_DIR, cur_file);
         }
     }
+    //change the main branch to the given branchname
+    public static void change_branch(String branchname) {
+        File HEAD = Utils.join(GITLET_DIR,"HEAD");
+        BRANCH = branchname;
+        Utils.writeContents(HEAD, BRANCH);
+    }
     public static void checkout_command3(String branchname) {
         if (branch_exist(branchname)) {
             if (BRANCH != branchname) {
@@ -441,6 +447,7 @@ public class Repository {
                     String hash_branch = Utils.readContentsAsString(branch_head);
                     Commit branch_headcommit = Commit.fromFile(hash_branch);
                     updatefileinCWD(branch_headcommit);
+                    change_branch(branchname);
                 } else {
                     System.out.println("There is an untracked file in the way;"
                             + " delete it, or add and commit it first.");
@@ -452,6 +459,43 @@ public class Repository {
             System.out.println("No such branch exists");
         }
     }
+    //add a new branch, create a file with the branchname
+    //and write the hashcode of the commit in the file
+    public static void branch_command(String branchname) {
+        if (!branch_exist(branchname)){
+            Commit curr_commit = ObtianLastCommit();
+            File branch_head = Utils.join(GITLET_DIR,"ref","heads",branchname);
+            String hashcode = curr_commit.getOwnID();
+            Utils.writeContents(branch_head, hashcode);
+        }
+        else {
+            System.out.println("A branch with that name already exists.");
+        }
+    }
+    // Delete the non-current branch give,
+    //only the file in heads folder,not any commits
+    public static void rmbranch_command(String branchname) {
+        if (!branch_exist(branchname)){
+            if (BRANCH.equals(branchname)) {
+                File branch_head = Utils.join(GITLET_DIR,"ref","heads",branchname);
+                branch_head.delete();
+            }
+            else {
+                System.out.println("Cannot remove the current branch.");
+            }
+        }
+        else {
+            System.out.println("A branch with that name does not exist.");
+        }
+    }
+    // essentially checkout of an arbitrary commit
+    //also changes the current branch head.
+    public static void reset(String ID) {
+
+    }
+
+
+
 
     public static void setStageArea(Stage stageArea) {
         StageArea = stageArea;

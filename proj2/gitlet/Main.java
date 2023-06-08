@@ -68,6 +68,16 @@ public class Main {
             case "checkout":
                 validate_checkout(args);
                 break;
+            case "branch":
+                validateNumArgs("branch", args, 2);
+                String branchname = args[1];
+                Repository.branch_command(branchname);
+                break;
+            case "rm-branch":
+                validateNumArgs("rm-branch", args, 2);
+                String branch = args[1];
+                Repository.rmbranch_command(branch);
+                break;
 
             default:
                 validate_initialized();
