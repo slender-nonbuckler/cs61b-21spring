@@ -41,7 +41,7 @@ public class Main {
 
                 validateNumArgs("commit", args, 2);
                 String msg = args[1];
-                Repository.commit_command(msg);
+                Repository.commit_command(msg,null);
                 break;
             case "rm":
                 validateNumArgs("rm", args, 2);
@@ -77,6 +77,16 @@ public class Main {
                 validateNumArgs("rm-branch", args, 2);
                 String branch = args[1];
                 Repository.rmbranch_command(branch);
+                break;
+            case "reset":
+                validateNumArgs("reset", args, 2);
+                String commit_ID = args[1];
+                Repository.reset_command(commit_ID);
+                break;
+            case "merge":
+                validateNumArgs("merge", args, 2);
+                String mergebranch = args[1];
+                Repository.merge_command(mergebranch);
                 break;
 
             default:
@@ -134,3 +144,4 @@ public class Main {
         }
     }
 }
+

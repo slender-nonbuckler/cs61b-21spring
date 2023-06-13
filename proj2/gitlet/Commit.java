@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.text.DateFormat;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Locale;
 
@@ -24,7 +25,7 @@ public class Commit implements Serializable {
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
-     * JQ: variables: timestamp, a TreeMap for blobs( file name : blob reference)
+     * JQ: variables: timestamp, a TreeMap for blobs( file name : blob hashcode)
      * a string for parent hashcode and a string for ownhashcode
      * a mapping( file name : second parent reference) for merging
      * Method: getownID
@@ -39,7 +40,7 @@ public class Commit implements Serializable {
 
     private TreeMap<String,String> blobmap;
 
-    private String parentID;
+    private List<String> parentID;
 
     private String ownID;
 
@@ -48,7 +49,7 @@ public class Commit implements Serializable {
 
     /** make the initial commit
      */
-    public Commit(String msg,TreeMap<String, String> blob, String parentID) {
+    public Commit(String msg,TreeMap<String, String> blob, List<String> parentID) {
         this.message = msg;
         this.timestamp = new Date();
         this.blobmap = blob;
@@ -56,7 +57,7 @@ public class Commit implements Serializable {
         this.ownID = findOwnID();
     }
     /* TODO: fill in the rest of this class. */
-    public String getParentID() {
+    public List<String> getParentID() {
 
         return parentID;
     }
@@ -127,19 +128,6 @@ public class Commit implements Serializable {
         this.timestamp = date;
     }
 
-    public void updatemessage (String msg) {
-
-        this.message = msg;
-    }
-
-    public void updateblobmap(TreeMap<String, String> blob) {
-
-        this.blobmap = blob;
-    }
-    public void updateParentID (String ID) {
-
-        this.parentID = ID;
-    }
 
     public TreeMap<String, String> getBlobsha1() {
 
