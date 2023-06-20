@@ -34,7 +34,7 @@ public class Stage implements Serializable {
                     return true;
                 }
                 return false;
-        }
+            }
         }
         return false;
     }
@@ -45,8 +45,8 @@ public class Stage implements Serializable {
                 if (i.equals(filename)) {
                     return true;
                 }
-                return false;
             }
+            return false;
         }
         return false;
     }

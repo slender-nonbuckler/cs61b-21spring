@@ -49,7 +49,7 @@ public class Repository {
     /**
      * current Branch name
      */
-    private static String BRANCH;
+    //private static String BRANCH;
     /**
      * Map for stageadd and stageremove
      * stored in stageArea
@@ -80,14 +80,21 @@ public class Repository {
                 throw new IllegalArgumentException(e.getMessage());
             }
         }
-        BRANCH = "MASTER";
-        Utils.writeContents(HEAD, BRANCH);
+        Utils.writeContents(HEAD, "master");
         StageArea = new Stage();
         Utils.writeObject(STAGE_File, StageArea);
 
 
     }
 
+    /**
+     * Assign the current branch name
+     * to the parameter BRANCH
+     */
+    public static String get_BRANCH() {
+        File HEAD = Utils.join(GITLET_DIR, "HEAD");
+        return (Utils.readContentsAsString(HEAD));
+    }
     public static void updateHEAD(String selfsha1) {
         File HEAD = Utils.join(GITLET_DIR, "HEAD");
         String curr_head = Utils.readContentsAsString(HEAD);
@@ -126,7 +133,6 @@ public class Repository {
      */
     public static void saveBlob(File file) {
         String content = Utils.readContentsAsString(file);
-
         String blob_hash = getsha1(file);
         File newblob = Utils.join(GITLET_DIR, "OBJECT", "BLOB", blob_hash);
         try {
@@ -145,6 +151,11 @@ public class Repository {
         return curr_commit.contain(hashcode);
     }
 
+    public static boolean fileincommit(String filename) {
+        Commit curr_commit = ObtianLastCommit();
+        return curr_commit.getBlobsha1().containsKey(filename);
+    }
+
     public static void add_command(String filename) {
         /** create the blob under the object folder
          *if new, add in stagearea mapping and save in blob folder
@@ -153,14 +164,25 @@ public class Repository {
          *  if identical to the current commit and if in the stagearea,
          *  remove this file from the stagearea.
          */
-        File to_add = new File(filename);
+        File to_add = Utils.join(CWD,filename);
+        Commit curr_commit = ObtianLastCommit();
         StageArea = Utils.readObject(STAGE_File, Stage.class);
         if (to_add.exists()) {
             String blob_hash = getsha1(to_add);
             //check if in last commit
             if (toaddincommit(blob_hash)) {
-                StageArea.stageadd_rm(filename);
-            } else {
+                if (StageArea.stageadd_havefile(filename)) {
+                    StageArea.stageadd_rm(filename);
+                }
+                else if (StageArea.getStagerm().contains(filename)) {
+                    StageArea.getStagerm().remove(filename);
+                }
+                else if (!fileincommit(filename)) {
+                    StageArea.stageadd_put(filename, blob_hash);
+                }
+                Utils.writeObject(STAGE_File, StageArea);
+            }
+            else {
                 if (!StageArea.stageadd_contian(blob_hash)) {
                     StageArea.stageadd_put(filename, blob_hash);
                     saveBlob(to_add);
@@ -224,8 +246,8 @@ public class Repository {
         if (StageArea.stageadd_havefile(filename)) {
             String blob_name = StageArea.getStageadd().get(filename);
             StageArea.stageadd_rm(filename);
-            File blob = Utils.join(GITLET_DIR, "OBJECT", "BLOB", blob_name);
-            blob.delete();
+            //File blob = Utils.join(GITLET_DIR, "OBJECT", "BLOB", blob_name);
+            //blob.delete();
             Utils.writeObject(STAGE_File, StageArea);
         } else if (curr_commit.containfile(filename)) {
             StageArea.stagerm_put(filename);
@@ -243,6 +265,17 @@ public class Repository {
         System.out.println(curr.getMessage() + "\n");
     }
 
+    public static void logprintMerge(Commit curr) {
+        System.out.println("===");
+        System.out.println("commit " + curr.getOwnID());
+        String parent1 = curr.getParentID().get(0);
+        String parent2 = curr.getParentID().get(1);
+        System.out.println("Merge: " + parent1.substring(0, 7) + " "
+                + parent2.substring(0, 7));
+        System.out.println("Date: " + curr.getTime());
+        System.out.println(curr.getMessage() + "\n");
+    }
+
     /**
      * Start from the headcommit to initial commit
      * printout the commit information including id,time&message.
@@ -252,7 +285,12 @@ public class Repository {
     public static void log_command() {
         Commit curr_commit = ObtianLastCommit();
         while (curr_commit.getParentID() != null) {
-            logprint(curr_commit);
+            if (curr_commit.getParentID().size() == 1) {
+                logprint(curr_commit);
+            }
+            else {
+                logprintMerge(curr_commit);
+            }
             curr_commit = Commit.fromFile(curr_commit.getParentID().get(0));
         }
         logprint(curr_commit);
@@ -284,7 +322,7 @@ public class Repository {
             for (String i : allcommit) {
                 Commit curr = Commit.fromFile(i);
                 if (curr.getMessage().equals(msg)) {
-                    System.out.println(curr.getBlobsha1());
+                    System.out.println(curr.getOwnID());
                     found = true;
                 }
             }
@@ -328,7 +366,7 @@ public class Repository {
         //the rest two (extra credit) not finished
         System.out.println("=== Modifications Not Staged For Commit ===");
         System.out.println();
-        System.out.println("=== Untracked files ===");
+        System.out.println("=== Untracked Files ===");
         System.out.println();
     }
 
@@ -383,8 +421,24 @@ public class Repository {
     public static void checkout_command2(String filename, String ID) {
         if (containID(ID)) {
             basic_checkout(commitintree(ID), filename);
-        } else {
-            System.out.println("No commit with that id exists");
+        }
+        else if (ID.length() < 40) {
+            File COMMIT_FOLDER = Utils.join(GITLET_DIR, "OBJECT", "COMMIT");
+            List<String> commit = Utils.plainFilenamesIn(COMMIT_FOLDER);
+            int occurence = 0;
+            String commitID = "";
+            for (String i : commit) {
+                if (ID.equals(i.substring(0, ID.length()))) {
+                    occurence += 1;
+                    commitID = i;
+                }
+            }
+            if (occurence == 1) {
+                basic_checkout(commitintree(commitID), filename);
+            }
+        }
+        else {
+            System.out.println("No commit with that id exists.");
         }
     }
 
@@ -420,6 +474,7 @@ public class Repository {
     //check if a file not tracked in current head commit
     //and tracked in the given branch head
 
+
     public static boolean track_branch(Commit commit) {
         Commit curr_commit = ObtianLastCommit();
         List<String> fileinCWD = Utils.plainFilenamesIn(CWD);
@@ -428,6 +483,10 @@ public class Repository {
             String file_shacode = getsha1(file);
             if (!curr_commit.contain(file_shacode)
                     && commit.contain(file_shacode)) {
+                return true;
+            }
+            else if (!curr_commit.containfile(i)
+                    && commit.containfile(i)) {
                 return true;
             }
         }
@@ -455,13 +514,12 @@ public class Repository {
     //change the main branch to the given branchname
     public static void change_branch(String branchname) {
         File HEAD = Utils.join(GITLET_DIR, "HEAD");
-        BRANCH = branchname;
-        Utils.writeContents(HEAD, BRANCH);
+        Utils.writeContents(HEAD, branchname);
     }
 
     public static void checkout_command3(String branchname) {
         if (branch_exist(branchname)) {
-            if (BRANCH != branchname) {
+            if (!get_BRANCH().equals(branchname)) {
                 Commit branch_headcommit = headcommit(branchname);
                 if (!track_branch(branch_headcommit)) {
                     updatefileinCWD(branch_headcommit);
@@ -473,10 +531,10 @@ public class Repository {
                             + " delete it, or add and commit it first.");
                 }
             } else {
-                System.out.println("No need to checkout the current branch");
+                System.out.println("No need to checkout the current branch.");
             }
         } else {
-            System.out.println("No such branch exists");
+            System.out.println("No such branch exists.");
         }
     }
 
@@ -496,8 +554,8 @@ public class Repository {
     // Delete the non-current branch given,
     //only the file in heads folder,not any commits
     public static void rmbranch_command(String branchname) {
-        if (!branch_exist(branchname)) {
-            if (BRANCH.equals(branchname)) {
+        if (branch_exist(branchname)) {
+            if (!get_BRANCH().equals(branchname)) {
                 File branch_head = Utils.join(GITLET_DIR, "ref", "heads", branchname);
                 branch_head.delete();
             } else {
@@ -513,7 +571,7 @@ public class Repository {
     public static void reset_command(String ID) {
         if (containID(ID)) {
             Commit branch_headcommit = commitintree(ID);
-            if (track_branch(branch_headcommit)) {
+            if (!track_branch(branch_headcommit)) {
                 updatefileinCWD(branch_headcommit);
                 updateHEAD(branch_headcommit.getOwnID());
                 StageArea.clear();
@@ -540,24 +598,33 @@ public class Repository {
         Commit curr_commit = ObtianLastCommit();
         Commit branch = headcommit(branchname);
         Commit splitpoint = findSplitPoint(curr_commit, branch);
+        //System.out.println(splitpoint.getOwnID());
+        //System.out.println(branch.getOwnID());
+        //System.out.println(curr_commit.getOwnID());
         ifsplitpointisgivenbranch(splitpoint, branch);
         ifsplitpointiscurrbranch(splitpoint, curr_commit, branchname);
 
         for (String i : getAllFiles(splitpoint, curr_commit, branch)) {
+            int mergecase = findMergeCase(i, splitpoint, curr_commit, branch);
+            System.out.println(i);
+            System.out.println(mergecase);
             switch (findMergeCase(i, splitpoint, curr_commit, branch)) {
                 case 0:
-                    continue;
+                    break;
                     //modified in other but not head
                 case 1:
                     overwritefile(branch, i);
                     add_command(i);
+                    break;
                     // only exist in branch
                 case 5:
                     overwritefile(branch, i);
                     add_command(i);
+                    break;
                     // only exist in splitpoint and curr,but not modified.
                 case 6:
                     rm_command(i);
+                    break;
                 case 8:
                     //replace contents in the file with both contents
                     //in curr and branch commit and stage the result.
@@ -578,10 +645,11 @@ public class Repository {
                     File combine_file = Utils.join(CWD, i);
                     Utils.writeContents(combine_file, combine);
                     add_command(i);
-                    System.out.println("Encountered a merge conflict");
+                    System.out.println("Encountered a merge conflict.");
+                    break;
             }
         }
-        String commit_msg = "Merged" + branchname + "into" + BRANCH;
+        String commit_msg = "Merged " + branchname + " into " + get_BRANCH() + ".";
         commit_command(commit_msg, branch.getOwnID());
     }
 
@@ -598,20 +666,20 @@ public class Repository {
      */
 
     public static Commit findSplitPoint(Commit curr_commit, Commit branch_commit) {
-        Queue<Commit> path = new LinkedList<>();
-        Set<Commit> visited = new HashSet<>();
-        path.add(curr_commit);
-        path.add(branch_commit);
+        Queue<String> path = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        path.add(curr_commit.getOwnID());
+        path.add(branch_commit.getOwnID());
         while (!path.isEmpty()) {
-            Commit curr = path.poll();
-            if (visited.contains(curr)) {
-                return curr;
+            String ID = path.poll();
+            Commit commit = Commit.fromFile(ID);
+            if (visited.contains(ID)) {
+                return commit;
             }
-            visited.add(curr);
-            if (curr.getParentID() != null) {
-                for (String parentID : curr.getParentID()) {
-                    Commit commit = Commit.fromFile(parentID);
-                    path.add(commit);
+            visited.add(ID);
+            if (commit.getParentID() != null) {
+                for (String parentID : commit.getParentID()) {
+                    path.add(parentID);
                 }
             }
         }
@@ -649,6 +717,9 @@ public class Repository {
             commonNo += 4;
         }
         if (commonNo == 7) {
+            System.out.println(splitpointMap.get(filename));
+            System.out.println(currMap.get(filename));
+            System.out.println(branchMap.get(filename));
             if (splitpointMap.get(filename).equals(branchMap.get(filename)) &&
                     (!splitpointMap.get(filename).equals(currMap.get(filename)))) {
                 caseNo = 1;
@@ -703,7 +774,7 @@ public class Repository {
     }
 
     public static void check_mergeself(String branchname) {
-        if (BRANCH.equals(branchname)) {
+        if (get_BRANCH().equals(branchname)) {
             System.out.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
@@ -714,7 +785,7 @@ public class Repository {
     //the branch head.
     public static void check_untrakced(String branchname) {
         Commit branch_headcommit = headcommit(branchname);
-        if (!track_branch(branch_headcommit)) {
+        if (track_branch(branch_headcommit)) {
             System.out.println("There is an untracked file in the way;"
                     + " delete it, or add and commit it first.");
             System.exit(0);

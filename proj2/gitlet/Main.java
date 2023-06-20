@@ -32,65 +32,74 @@ public class Main {
 
                 break;
             case "add":
-
                 validateNumArgs("add", args, 2);
+                validate_initialized();
                 String toadd = args[1];
                 Repository.add_command(toadd);
                 break;
             case "commit":
-
                 validateNumArgs("commit", args, 2);
+                validate_initialized();
                 String msg = args[1];
                 Repository.commit_command(msg,null);
                 break;
             case "rm":
                 validateNumArgs("rm", args, 2);
+                validate_initialized();
                 String filename = args[1];
                 Repository.rm_command(filename);
                 break;
             case "log":
                 validateNumArgs("log", args, 1);
+                validate_initialized();
                 Repository.log_command();
                 break;
-            case "global_log":
-                validateNumArgs("global_log", args, 1);
+            case "global-log":
+                validateNumArgs("global-log", args, 1);
+                validate_initialized();
                 Repository.globallog_command();
                 break;
             case "find":
                 validateNumArgs("find", args, 2);
+                validate_initialized();
                 String msg_find = args[1];
                 Repository.find_command(msg_find);
                 break;
             case "status":
                 validateNumArgs("status", args, 1);
+                validate_initialized();
                 Repository.status_command();
                 break;
             case "checkout":
                 validate_checkout(args);
+                validate_initialized();
                 break;
             case "branch":
                 validateNumArgs("branch", args, 2);
+                validate_initialized();
                 String branchname = args[1];
                 Repository.branch_command(branchname);
                 break;
             case "rm-branch":
                 validateNumArgs("rm-branch", args, 2);
+                validate_initialized();
                 String branch = args[1];
                 Repository.rmbranch_command(branch);
                 break;
             case "reset":
                 validateNumArgs("reset", args, 2);
+                validate_initialized();
                 String commit_ID = args[1];
                 Repository.reset_command(commit_ID);
                 break;
             case "merge":
                 validateNumArgs("merge", args, 2);
+                validate_initialized();
                 String mergebranch = args[1];
                 Repository.merge_command(mergebranch);
                 break;
 
             default:
-                validate_initialized();
                 validate_commandexist();
         }
     }
@@ -105,7 +114,7 @@ public class Main {
     public static void validateNumArgs(String cmd, String[] args, int n) {
         if (args.length != n) {
             throw new RuntimeException(
-                    "Incorrect operands");
+                    "Incorrect operands.");
         }
     }
     public static void validate_checkout(String[] args) {
@@ -114,14 +123,14 @@ public class Main {
             Repository.checkout_command3(branchname);
         } else if (args.length == 3) {
             if (!args[1].equals("--")) {
-                System.out.println("Incorrect operands");
+                System.out.println("Incorrect operands.");
                 System.exit(0);
             }
             String filename = args[2];
             Repository.checkout_command1(filename);
         } else if (args.length == 4) {
             if (!args[2].equals("--")) {
-                System.out.println("Incorrect operands");
+                System.out.println("Incorrect operands.");
                 System.exit(0);
             }
             String id = args[1];
@@ -129,7 +138,7 @@ public class Main {
             Repository.checkout_command2(filename, id);
         } else {
             throw new RuntimeException(
-                    "Incorrect operands");
+                    "Incorrect operands.");
         }
     }
 
