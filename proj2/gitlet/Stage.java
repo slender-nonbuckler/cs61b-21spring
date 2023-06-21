@@ -12,22 +12,22 @@ public class Stage implements Serializable {
     }
 
 
-    public void stageadd_put(String filename, String sha1) {
+    public void stageadd_Put(String filename, String sha1) {
 
         stageadd.put(filename, sha1);
     }
 
-    public void stagerm_put(String filename) {
+    public void stagerm_Put(String filename) {
 
         stagerm.add(filename);
     }
 
-    public void stageadd_rm(String filename) {
+    public void stageadd_Rm(String filename) {
 
         stageadd.remove(filename);
     }
 
-    public boolean stageadd_contian(String hashcode) {
+    public boolean stageadd_Contian(String hashcode) {
         if (stageadd != null) {
             for (String i : stageadd.values()) {
                 if (i.equals(hashcode)) {
@@ -39,7 +39,7 @@ public class Stage implements Serializable {
         return false;
     }
 
-    public boolean stageadd_havefile(String filename) {
+    public boolean stageadd_Havefile(String filename) {
         if (stageadd != null) {
             for (String i : stageadd.keySet()) {
                 if (i.equals(filename)) {

@@ -1,26 +1,24 @@
 package gitlet;
 
-// TODO: any imports you need here
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.Date;
 import java.text.DateFormat;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Locale;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
+ *
  *  does at a high level.
  *
  *  @author TODO
  */
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -38,13 +36,13 @@ public class Commit implements Serializable {
 
     private Date timestamp;
 
-    private TreeMap<String,String> blobmap;
+    private TreeMap<String, String> blobmap;
 
     private List<String> parentID;
 
     private String ownID;
 
-    static final File COMMIT_FOLDER = Utils.join(".gitlet","OBJECT","COMMIT");
+    static final File COMMIT_FOLDER = Utils.join(".gitlet", "OBJECT", "COMMIT");
 
 
     /** make the initial commit
@@ -56,7 +54,7 @@ public class Commit implements Serializable {
         this.parentID = parentID;
         this.ownID = findOwnID();
     }
-    /* TODO: fill in the rest of this class. */
+
     public List<String> getParentID() {
 
         return parentID;
@@ -81,8 +79,8 @@ public class Commit implements Serializable {
 
 
     public void saveCommit() {
-        String CommitSHA1 = this.getOwnID();
-        File CommitFile = Utils.join(".gitlet","OBJECT","COMMIT",CommitSHA1);
+        String CommitSha1 = this.getOwnID();
+        File CommitFile = Utils.join(".gitlet", "OBJECT", "COMMIT", CommitSha1);
         if (!CommitFile.exists()) {
             try {
                 CommitFile.createNewFile(); // error when the file exists.
@@ -90,7 +88,7 @@ public class Commit implements Serializable {
                 throw new IllegalArgumentException(e.getMessage());
             }
         }
-        Utils.writeObject(CommitFile,this);
+        Utils.writeObject(CommitFile, this);
     }
 
     public boolean contain(String hashcode) {
@@ -99,11 +97,11 @@ public class Commit implements Serializable {
                 if (i.equals(hashcode)) {
                     return true;
                 }
-                }
-            return false;
             }
-        return false;
+            return false;
         }
+        return false;
+    }
 
     public boolean containfile(String filename) {
         if (blobmap != null) {
@@ -123,7 +121,7 @@ public class Commit implements Serializable {
         return selfID;
     }
 
-    public void changetimestamp (Date date) {
+    public void changetimestamp(Date date) {
 
         this.timestamp = date;
     }
@@ -137,8 +135,8 @@ public class Commit implements Serializable {
 
 
     public static Commit fromFile(String filename) {
-        File des_commit = Utils.join(COMMIT_FOLDER,filename);
-        Commit c = Utils.<Commit>readObject(des_commit,Commit.class);
+        File Des_Commit = Utils.join(COMMIT_FOLDER, filename);
+        Commit c = Utils.<Commit>readObject(Des_Commit, Commit.class);
         return c;
     }
 }

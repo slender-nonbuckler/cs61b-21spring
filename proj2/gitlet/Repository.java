@@ -45,7 +45,7 @@ public class Repository {
     /**
      * The file store stage class-including stageadd and stagerm
      */
-    public static final File STAGE_File = Utils.join(GITLET_DIR, "stage", "stagearea");
+    public static final File Stage_File = Utils.join(GITLET_DIR, "stage", "stageArea");
     /**
      * current Branch name
      */
@@ -54,7 +54,7 @@ public class Repository {
      * Map for stageadd and stageremove
      * stored in stageArea
      */
-    private static Stage StageArea = new Stage();
+    private static Stage stageArea = new Stage();
 
     /**
      * TODO: create the .gitlet directory
@@ -81,8 +81,8 @@ public class Repository {
             }
         }
         Utils.writeContents(HEAD, "master");
-        StageArea = new Stage();
-        Utils.writeObject(STAGE_File, StageArea);
+        stageArea = new Stage();
+        Utils.writeObject(Stage_File, stageArea);
 
 
     }
@@ -158,44 +158,44 @@ public class Repository {
 
     public static void add_command(String filename) {
         /** create the blob under the object folder
-         *if new, add in stagearea mapping and save in blob folder
-         *if already exist in the stagearea, check hashcode
+         *if new, add in stageArea mapping and save in blob folder
+         *if already exist in the stageArea, check hashcode
          *  - if not same, update.
-         *  if identical to the current commit and if in the stagearea,
-         *  remove this file from the stagearea.
+         *  if identical to the current commit and if in the stageArea,
+         *  remove this file from the stageArea.
          */
         File to_add = Utils.join(CWD,filename);
         Commit curr_commit = ObtianLastCommit();
-        StageArea = Utils.readObject(STAGE_File, Stage.class);
+        stageArea = Utils.readObject(Stage_File, Stage.class);
         if (to_add.exists()) {
             String blob_hash = getsha1(to_add);
             //check if in last commit
             if (toaddincommit(blob_hash)) {
-                if (StageArea.stageadd_havefile(filename)) {
-                    StageArea.stageadd_rm(filename);
+                if (stageArea.stageadd_Havefile(filename)) {
+                    stageArea.stageadd_Rm(filename);
                 }
-                else if (StageArea.getStagerm().contains(filename)) {
-                    StageArea.getStagerm().remove(filename);
+                else if (stageArea.getStagerm().contains(filename)) {
+                    stageArea.getStagerm().remove(filename);
                 }
                 else if (!fileincommit(filename)) {
-                    StageArea.stageadd_put(filename, blob_hash);
+                    stageArea.stageadd_Put(filename, blob_hash);
                 }
                 else if (!curr_commit.getBlobsha1().get(filename).equals(blob_hash)
                  && fileincommit(filename)) {
-                    StageArea.stageadd_put(filename, blob_hash);
+                    stageArea.stageadd_Put(filename, blob_hash);
                 }
-                Utils.writeObject(STAGE_File, StageArea);
+                Utils.writeObject(Stage_File, stageArea);
             }
             else {
-                if (!StageArea.stageadd_contian(blob_hash)) {
-                    StageArea.stageadd_put(filename, blob_hash);
+                if (!stageArea.stageadd_Contian(blob_hash)) {
+                    stageArea.stageadd_Put(filename, blob_hash);
                     saveBlob(to_add);
                 }
-                else if (!StageArea.stageadd_havefile(filename)) {
-                    StageArea.stageadd_put(filename, blob_hash);
+                else if (!stageArea.stageadd_Havefile(filename)) {
+                    stageArea.stageadd_Put(filename, blob_hash);
                 }
             }
-            Utils.writeObject(STAGE_File, StageArea);
+            Utils.writeObject(Stage_File, stageArea);
         } else {
             System.out.println("File does not exist");
         }
@@ -213,8 +213,8 @@ public class Repository {
     }
 
     public static void commit_command(String msg, String second_parentID) {
-        StageArea = Utils.readObject(STAGE_File, Stage.class);
-        if (StageArea.getStageadd().isEmpty() && StageArea.getStagerm().isEmpty()) {
+        stageArea = Utils.readObject(Stage_File, Stage.class);
+        if (stageArea.getStageadd().isEmpty() && stageArea.getStagerm().isEmpty()) {
             System.out.println("No changes added to the commit");
             return;
         } else if (msg.equals("")) {
@@ -222,10 +222,10 @@ public class Repository {
         }
         Commit curr = ObtianLastCommit();
         TreeMap<String, String> newblobmap = curr.getBlobsha1();
-        for (String filename : StageArea.getStageadd().keySet()) {
-            newblobmap.put(filename, StageArea.getStageadd().get(filename));
+        for (String filename : stageArea.getStageadd().keySet()) {
+            newblobmap.put(filename, stageArea.getStageadd().get(filename));
         }
-        for (String rmfile : StageArea.getStagerm()) {
+        for (String rmfile : stageArea.getStagerm()) {
             newblobmap.remove(rmfile);
         }
         List<String> parents = new ArrayList<>();
@@ -236,8 +236,8 @@ public class Repository {
         Commit newcommit = new Commit(msg, newblobmap, parents);
         newcommit.saveCommit();
         updateHEAD(newcommit.getOwnID());
-        StageArea.clear();
-        Utils.writeObject(STAGE_File, StageArea);
+        stageArea.clear();
+        Utils.writeObject(Stage_File, stageArea);
 
     }
 
@@ -248,17 +248,17 @@ public class Repository {
      * delete it in the CWD
      */
     public static void rm_command(String filename) {
-        StageArea = Utils.readObject(STAGE_File, Stage.class);
+        stageArea = Utils.readObject(Stage_File, Stage.class);
         Commit curr_commit = ObtianLastCommit();
-        if (StageArea.stageadd_havefile(filename)) {
-            String blob_name = StageArea.getStageadd().get(filename);
-            StageArea.stageadd_rm(filename);
+        if (stageArea.stageadd_Havefile(filename)) {
+            String blob_name = stageArea.getStageadd().get(filename);
+            stageArea.stageadd_Rm(filename);
             //File blob = Utils.join(GITLET_DIR, "OBJECT", "BLOB", blob_name);
             //blob.delete();
-            Utils.writeObject(STAGE_File, StageArea);
+            Utils.writeObject(Stage_File, stageArea);
         } else if (curr_commit.containfile(filename)) {
-            StageArea.stagerm_put(filename);
-            Utils.writeObject(STAGE_File, StageArea);
+            stageArea.stagerm_Put(filename);
+            Utils.writeObject(Stage_File, stageArea);
             Utils.restrictedDelete(filename);
         } else {
             System.out.println("No reason to remove the file");
@@ -358,15 +358,15 @@ public class Repository {
         }
         System.out.println();
         //print stageadd
-        StageArea = Utils.readObject(STAGE_File, Stage.class);
+        stageArea = Utils.readObject(Stage_File, Stage.class);
         System.out.println("=== Staged Files ===");
-        for (String i : StageArea.getStageadd().keySet()) {
+        for (String i : stageArea.getStageadd().keySet()) {
             System.out.println(i);
         }
         System.out.println();
         //print stagerm
         System.out.println("=== Removed Files ===");
-        for (String i : StageArea.getStagerm()) {
+        for (String i : stageArea.getStagerm()) {
             System.out.println(i);
         }
         System.out.println();
@@ -532,8 +532,8 @@ public class Repository {
                 if (!track_branch(branch_headcommit)) {
                     updatefileinCWD(branch_headcommit);
                     change_branch(branchname);
-                    StageArea.clear();
-                    Utils.writeObject(STAGE_File, StageArea);
+                    stageArea.clear();
+                    Utils.writeObject(Stage_File, stageArea);
                 } else {
                     System.out.println("There is an untracked file in the way;"
                             + " delete it, or add and commit it first.");
@@ -582,8 +582,8 @@ public class Repository {
             if (!track_branch(branch_headcommit)) {
                 updatefileinCWD(branch_headcommit);
                 updateHEAD(branch_headcommit.getOwnID());
-                StageArea.clear();
-                Utils.writeObject(STAGE_File, StageArea);
+                stageArea.clear();
+                Utils.writeObject(Stage_File, stageArea);
             } else {
                 System.out.println("There is an untracked file in the way;"
                         + " delete it, or add and commit it first.");
@@ -600,7 +600,7 @@ public class Repository {
      */
     public static void merge_command(String branchname) {
         check_branchexisting(branchname);
-        check_stagearea();
+        check_stageArea();
         check_mergeself(branchname);
         check_untrakced(branchname);
         Commit curr_commit = ObtianLastCommit();
@@ -772,8 +772,8 @@ public class Repository {
         }
     }
 
-    public static void check_stagearea() {
-        if (!StageArea.getStageadd().isEmpty() || !StageArea.getStagerm().isEmpty()) {
+    public static void check_stageArea() {
+        if (!stageArea.getStageadd().isEmpty() || !stageArea.getStagerm().isEmpty()) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
