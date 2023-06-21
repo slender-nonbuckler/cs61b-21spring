@@ -773,6 +773,7 @@ public class Repository {
     }
 
     public static void check_stageArea() {
+        stageArea = Utils.readObject(Stage_File, Stage.class);
         if (!stageArea.getStageadd().isEmpty() || !stageArea.getStagerm().isEmpty()) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
