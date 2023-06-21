@@ -180,12 +180,19 @@ public class Repository {
                 else if (!fileincommit(filename)) {
                     StageArea.stageadd_put(filename, blob_hash);
                 }
+                else if (!curr_commit.getBlobsha1().get(filename).equals(blob_hash)
+                 && fileincommit(filename)) {
+                    StageArea.stageadd_put(filename, blob_hash);
+                }
                 Utils.writeObject(STAGE_File, StageArea);
             }
             else {
                 if (!StageArea.stageadd_contian(blob_hash)) {
                     StageArea.stageadd_put(filename, blob_hash);
                     saveBlob(to_add);
+                }
+                else if (!StageArea.stageadd_havefile(filename)) {
+                    StageArea.stageadd_put(filename, blob_hash);
                 }
             }
             Utils.writeObject(STAGE_File, StageArea);
@@ -481,11 +488,12 @@ public class Repository {
         for (String i : fileinCWD) {
             File file = Utils.join(CWD, i);
             String file_shacode = getsha1(file);
+            /**
             if (!curr_commit.contain(file_shacode)
                     && commit.contain(file_shacode)) {
                 return true;
-            }
-            else if (!curr_commit.containfile(i)
+            }*/
+            if (!curr_commit.containfile(i)
                     && commit.containfile(i)) {
                 return true;
             }
@@ -606,8 +614,8 @@ public class Repository {
 
         for (String i : getAllFiles(splitpoint, curr_commit, branch)) {
             int mergecase = findMergeCase(i, splitpoint, curr_commit, branch);
-            System.out.println(i);
-            System.out.println(mergecase);
+            //System.out.println(i);
+            //System.out.println(mergecase);
             switch (findMergeCase(i, splitpoint, curr_commit, branch)) {
                 case 0:
                     break;
@@ -717,14 +725,12 @@ public class Repository {
             commonNo += 4;
         }
         if (commonNo == 7) {
-            System.out.println(splitpointMap.get(filename));
-            System.out.println(currMap.get(filename));
-            System.out.println(branchMap.get(filename));
-            if (splitpointMap.get(filename).equals(branchMap.get(filename)) &&
-                    (!splitpointMap.get(filename).equals(currMap.get(filename)))) {
+            if (!splitpointMap.get(filename).equals(branchMap.get(filename)) &&
+                    (splitpointMap.get(filename).equals(currMap.get(filename)))) {
                 caseNo = 1;
                 return caseNo;
-            } else if ((!splitpointMap.get(filename).equals(branchMap.get(filename)) &&
+            }
+            else if ((!splitpointMap.get(filename).equals(branchMap.get(filename)) &&
                     (!splitpointMap.get(filename).equals(currMap.get(filename))) &&
                     (!branchMap.get(filename).equals(currMap.get(filename))))) {
                 caseNo = 8;
