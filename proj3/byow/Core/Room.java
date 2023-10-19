@@ -1,5 +1,6 @@
 package byow.Core;
 
+import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
@@ -19,10 +20,10 @@ public class Room {
      * Draw a row of tiles to the board, anchored at a given postion
      * with the two ends as wall tiles
      */
-    public void drawRow (TETile[][] tiles, Position p, int width){
-        for (int dx = 0; dx < width; dx++) {
+    public void drawRow (TETile[][] tiles, Position p){
+        for (int dx = 0; dx < this.width; dx++) {
             // draw wall on each end;
-            if (dx == 0 || dx == width - 1) {
+            if (dx == 0 || dx == this.width - 1) {
                 tiles[p.x + dx][p.y] = Tileset.WALL;
             }
             else {
@@ -33,8 +34,8 @@ public class Room {
     /**
      * Draw a row of wall tiles to the board, anchored at a given postion
      */
-    public void drawWall (TETile[][] tiles, Position p, int width) {
-        for (int dx = 0; dx < width; dx++) {
+    public void drawWall (TETile[][] tiles, Position p) {
+        for (int dx = 0; dx < this.width; dx++) {
             // draw wall on each end;
             tiles[p.x + dx][p.y] = Tileset.WALL;
         }
@@ -43,13 +44,13 @@ public class Room {
      * Draw one room anchored at a given postion
      * with wall elements surronding it.
      */
-    public void drawOneRoom (TETile[][] tiles, Position p, int width, int height) {
-        drawWall(tiles, p, width);
+    public void drawOneRoom (TETile[][] tiles, Position p) {
+        drawWall(tiles, p);
         for (int dy = 1; dy < height - 1; dy++) {
             // draw wall on each end;
-            drawRow(tiles, p.shift(0, dy), width);
+            drawRow(tiles, p.shift(0, dy));
         }
-        drawWall(tiles, p.shift(0, height - 1), width);
+        drawWall(tiles, p.shift(0, height - 1));
     }
     /**
      * Determine if a rectangle room overlap with another.
@@ -61,7 +62,18 @@ public class Room {
         Position p2 = p1.shift(this.width, this.height);
         Position p3 = other.startP;
         Position p4 = p3.shift(other.width, other.height);
-        if (p2.larger(p3) && p4.larger(p1)) return true;
-        return false;
+        if ( p2.larger(p3) && p4.larger(p1)) return true;
+        //p2.x >  p3.x && p2.y > p3.y && p4.x > p1.x && p4.y > p1.y
+        else {
+            return false;
+        }
+    }
+
+    public static void main(String[] args) {
+        Position p1 = new Position(13, 4);
+        Position p2 = new Position(17, 3);
+        Room room1 = new Room(9, 9, p1);
+        Room room2 = new Room(4, 6, p2);
+        System.out.println(room1.roomOverlap(room2));
     }
 }

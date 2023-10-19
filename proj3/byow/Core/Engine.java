@@ -3,14 +3,20 @@ package byow.Core;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
-import byow.lab12.HexWorld;
+import org.apache.commons.math3.analysis.solvers.BracketingNthOrderBrentSolver;
+
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class Engine {
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
-    public static final int HEIGHT = 80;
-
+    public static final int HEIGHT = 50;
+    public static final Random RANDOM = new Random();
+    public static List<Room> roomList = new ArrayList<>();
 
 
     /**
@@ -50,26 +56,72 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+
         TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
         return finalWorldFrame;
     }
+    /**
+     * Fills the given 2D array of tiles with RANDOM tiles.
+     * @param tiles
+     */
     public static void fillWithNothing(TETile[][] tiles) {
         int height = tiles[0].length;
         int width = tiles.length;
         for (int x = 0; x < width; x += 1) {
             for (int y = 0; y < height; y += 1) {
-                tiles[x][y] = Tileset.NOTHING;
+                tiles[x][y] = Tileset.TREE;
             }
         }
     }
+    /**
+     * Check if this room overlap with all existing rooms
+     * @param room
+     * @return true if it overlaps
+     */
+    public static boolean roomOverlapAll(Room room) {
+        if (roomList.isEmpty()) return false;
+        for (Room i : roomList) {
+            if(room.roomOverlap(i)) return true;
+        }
+        return false;
+    }
+
+    /**
+     * draw total number of roomTotal rooms
+     * @param roomTotal
+     * @return
+     */
+    public static void drawAllRoom(int roomTotal, TETile[][] tiles) {
+        int i = 0;
+        int th = 0;
+        while (i < roomTotal) {
+            int width = RANDOM.nextInt(WIDTH / 8) + 4;
+            int height = RANDOM.nextInt(HEIGHT / 8) + 4;
+            int x = RANDOM.nextInt(WIDTH - width - 2) + 1;
+            int y = RANDOM.nextInt( HEIGHT - height) + 1;
+            Position p = new Position(x, y);
+            Room room = new Room(width, height, p);
+            th++;
+            if (!roomOverlapAll(room)) {
+                i++;
+                room.drawOneRoom(tiles, p);
+                roomList.add(room);
+            }
+        }
+        System.out.println(th);
+
+    }
+
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
         TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
         fillWithNothing(finalWorldFrame);
-        Position anchor = new Position(12, 34);
-        Room first = new Room(10, 10, anchor);
-        first.drawOneRoom(finalWorldFrame, anchor, first.width, first.height);
+        //Position anchor = new Position(0, 0);
+        //Room room = new Room(5, 5, anchor);
+        //room.drawWall(finalWorldFrame,anchor);
+        //room.drawOneRoom(finalWorldFrame,anchor, 10, 10);
+        drawAllRoom(40, finalWorldFrame);
         ter.renderFrame(finalWorldFrame);
     }
 }

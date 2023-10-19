@@ -121,8 +121,9 @@ public class   HexWorld {
         ter.initialize(WIDTH, HEIGHT);
         TETile[][] world = new TETile[WIDTH][HEIGHT];
         fillWithNothing(world);
-        Position anchor = new Position(12, 34);
-        drawWorld(anchor, world, 3, 4);
+        Position anchor = new Position(0, 0);
+        drawRow(world, anchor, randomTile(), 5);
+        //drawWorld(anchor, world, 3, 4);
         ter.renderFrame(world);
     }
 }
