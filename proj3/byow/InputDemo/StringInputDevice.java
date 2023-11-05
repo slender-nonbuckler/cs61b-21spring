@@ -15,7 +15,7 @@ public class StringInputDevice implements InputSource  {
     public char getNextKey() {
         char returnChar = input.charAt(index);
         index += 1;
-        return returnChar;
+        return Character.toUpperCase(returnChar);
     }
 
     public boolean possibleNextInput() {

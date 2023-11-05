@@ -20,4 +20,13 @@ public class Position {
         }
         return false;
     }
+
+    /**
+     * return the distance to origin
+     * x2 + y2
+     */
+
+    public int toOrigin() {
+        return this.x * this.x + this.y * this.y;
+    }
 }
