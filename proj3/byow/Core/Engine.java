@@ -17,7 +17,7 @@ public class Engine {
     private boolean GameState;
     private static long SEED;
     private static int count; //room number range 20-35;
-
+    public static TETile[][] finalWorldFrame;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -61,7 +61,6 @@ public class Engine {
             char key = inputDevice.getNextKey();
             processkey(key);
         }
-        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
         return finalWorldFrame;
     }
     /**
@@ -252,8 +251,8 @@ public class Engine {
     public void findDoor(TETile[][] tiles) {
         int roomNo = RANDOM.nextInt(roomList.size() - 1);
         Room room = roomList.get(roomNo);
-        int minx = room.startP.x ;
-        int miny = room.startP.y ;
+        int minx = room.startP.x;
+        int miny = room.startP.y;
         int maxx = room.startP.x + room.width - 1;
         int maxy = room.startP.y + room.height - 1;
         int x = 0;
@@ -297,7 +296,7 @@ public class Engine {
         RANDOM = new Random(SEED);
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
-        TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
+        finalWorldFrame = new TETile[WIDTH][HEIGHT];
         fillWithNothing(finalWorldFrame);
         //Position anchor = new Position(0, 0);
         //Room room = new Room(5, 5, anchor);
