@@ -3,8 +3,11 @@ import byow.InputDemo.*;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
+import edu.princeton.cs.introcs.StdDraw;
 
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Engine {
@@ -292,6 +295,25 @@ public class Engine {
 
         tiles[x][y] = Tileset.LOCKED_DOOR;
     }
+
+    /**
+     * add HUD at the top of the board.
+     * 1. Show the tile that currently under the mouse pointer.
+     * 2. add the relal time and date
+     */
+    public void addHDU() {
+        if (GameState && StdDraw.isMousePressed()) {
+            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
+            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
+            String text = tile.description();
+            StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
+        }
+        // Add real-time and date on the right top corner
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String dateTimeString = now.format(formatter);
+        StdDraw.textRight(WIDTH - 1, HEIGHT - 1, dateTimeString);
+    }
     public void initializeGame() {
         RANDOM = new Random(SEED);
         TERenderer ter = new TERenderer();
@@ -306,7 +328,7 @@ public class Engine {
         drawAllRoom(count, finalWorldFrame);
         connectRoom(finalWorldFrame);
         findDoor(finalWorldFrame);
+        addHDU();
         ter.renderFrame(finalWorldFrame);
     }
-
 }
