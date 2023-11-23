@@ -20,6 +20,7 @@ public class Engine {
     public static Random RANDOM;
     public static List<Room> roomList = new ArrayList<>();
     private boolean GameState;
+    private boolean Gameactive;
     private static long SEED;
     private static int count; //room number range 20-35;
     public static TETile[][] finalWorldFrame;
@@ -297,22 +298,76 @@ public class Engine {
 
         tiles[x][y] = Tileset.LOCKED_DOOR;
     }
-
-    public void addHDU() {
-        if (StdDraw.isMousePressed()) {
-            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
-            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
-            String text = tile.description();
-            StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
+    /**
+     * iterate through the room supposed surrounding walls,
+     * if it is wall tile, it will be the door location.
+     */
+    public void addAvatar(TETile[][] tiles) {
+        int roomNo = RANDOM.nextInt(roomList.size() - 1);
+        Room room = roomList.get(roomNo);
+        int minx = room.startP.x;
+        int miny = room.startP.y;
+        int maxx = room.startP.x + room.width - 1;
+        int maxy = room.startP.y + room.height - 1;
+        int x = 0;
+        int y = 0;
+        int dir = RANDOM.nextInt(3);
+        switch (dir) {
+            case 0:
+                x = minx;
+                y = miny + 1;
+                while (tiles[x][y] != Tileset.WALL) {
+                    y += 1; // not consider y outside of rectangle,
+                    // because there will be wall element at this line
+                }
+                break;
+            case 1:
+                x = minx + 1;
+                y = maxy;
+                while (tiles[x][y] != Tileset.WALL) {
+                    x += 1;
+                }
+                break;
+            case 2:
+                x = maxx;
+                y = maxy - 1;
+                while (tiles[x][y] != Tileset.WALL) {
+                    y -= 1;
+                }
+                break;
+            case 3:
+                x = maxx - 1;
+                y = miny;
+                while (tiles[x][y] != Tileset.WALL) {
+                    x -= 1;
+                }
+                break;
         }
+
+        tiles[x][y] = Tileset.LOCKED_DOOR;
+    }
+    /**
+     * add HUD at the top of the board.
+     * 1. Show the tile that currently under the mouse pointer.
+     * 2. add the real time and date on the right top corner
+     */
+    public void addHDU() {
         // Add real-time and date on the right top corner
         StdDraw.setPenColor(Color.WHITE);
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String dateTimeString = now.format(formatter);
         StdDraw.textRight(WIDTH - 1, HEIGHT - 1, dateTimeString);
-        StdDraw.show();
-        StdDraw.pause(500);
+        int count = 0;
+        while(!GameState) {
+            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
+            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
+            String text = tile.description();
+            StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
+            StdDraw.show();
+            count ++;
+            if (count == 100) GameState = true;
+        }
     }
 
     public void initializeGame() {
@@ -329,7 +384,6 @@ public class Engine {
         drawAllRoom(count, finalWorldFrame);
         connectRoom(finalWorldFrame);
         findDoor(finalWorldFrame);
-
         ter.renderFrame(finalWorldFrame);
         addHDU();
 
