@@ -1,10 +1,14 @@
 package byow.TileEngine;
 
+import byow.Core.Position;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 
 /**
  * Utility class for rendering tiles. You do not need to modify this file. You're welcome
@@ -98,5 +102,88 @@ public class TERenderer implements Serializable {
             }
         }
         StdDraw.show();
+    }
+
+    /**
+     * add hudmessage at top
+     * @param world
+     * @param hudmessage
+     */
+    public void renderFrame(TETile[][] world, String hudmessage, long[] time) {
+        int numXTiles = world.length;
+        int numYTiles = world[0].length;
+        StdDraw.clear(new Color(0, 0, 0));
+        for (int x = 0; x < numXTiles; x += 1) {
+            for (int y = 0; y < numYTiles; y += 1) {
+                if (world[x][y] == null) {
+                    throw new IllegalArgumentException("Tile at position x=" + x + ", y=" + y
+                            + " is null.");
+                }
+                world[x][y].draw(x + xOffset, y + yOffset);
+            }
+        }
+        // Add real-time and date on the right top corner
+        StdDraw.setPenColor(Color.WHITE);
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String dateTimeString = now.format(formatter);
+        StdDraw.textRight(width - 1, height - 1, dateTimeString);
+        StdDraw.textLeft(1, height - 1, hudmessage);//show tile info on top left
+        String text = String.format("Time remaining: %02d:%02d", time[0], time[1]);
+        StdDraw.text(width / 2, height - 1, text);
+        StdDraw.show();
+        StdDraw.pause(10);
+    }
+
+    /**
+     * only show the 7x7 square view around the player
+     * if 7x7 square exceed the border, smaller square will be show.
+     * the input range has all the valid position for the square view range
+     * @param world
+     * @param range
+     */
+    public void renderFramelimited(TETile[][] world, HashSet<int[]> range) {
+        StdDraw.clear(new Color(0, 0, 0));
+        for (int[] i :  range) {
+            int x = i[0];
+            int y = i[1];
+                if (world[x][y] == null) {
+                    throw new IllegalArgumentException("Tile at position x=" + x + ", y=" + y
+                            + " is null.");
+                }
+                world[x][y].draw(x + xOffset, y + yOffset);
+            }
+        StdDraw.show();
+    }
+
+    /**
+     * add hud message in limited view case
+     * @param world
+     * @param range
+     * @param message
+     */
+    public void renderFramelimited(TETile[][] world, HashSet<int[]> range, String message, long[] time) {
+        StdDraw.clear(new Color(0, 0, 0));
+        for (int[] i :  range) {
+            int x = i[0];
+            int y = i[1];
+            if (world[x][y] == null) {
+                throw new IllegalArgumentException("Tile at position x=" + x + ", y=" + y
+                        + " is null.");
+            }
+            world[x][y].draw(x + xOffset, y + yOffset);
+        }
+        // Add real-time and date on the right top corner
+        StdDraw.setPenColor(Color.WHITE);
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String dateTimeString = now.format(formatter);
+        StdDraw.textRight(width - 1, height - 1, dateTimeString);
+        StdDraw.textLeft(1, height - 1, message);//show tile info on top left
+        //Add remaining time in the top middle
+        String text = String.format("Time remaining: %02d:%02d", time[0], time[1]);
+        StdDraw.text(width / 2, height - 1, text);
+        StdDraw.show();
+        StdDraw.pause(10);
     }
 }

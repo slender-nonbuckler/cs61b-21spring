@@ -25,6 +25,8 @@ public class Engine {
     private Player player;
     private boolean Gameactive = true;
     private static long SEED;
+    private final long START_TIME = 1 * 10 * 1000; // 1 minutes(limit) in milliseconds
+    private long startTime;
     private static int count; //room number range 20-35;
     public static TETile[][] finalWorldFrame;
 
@@ -35,14 +37,12 @@ public class Engine {
     public void interactWithKeyboard() throws IOException {
         DisplayMenu();
         KeyBoardInputSource keyboardInput = new KeyBoardInputSource();
-
         while (Gameactive) {
-            if (finalWorldFrame != null) addHDU();
             if (keyboardInput.possibleNextInput()) {
                 char key = keyboardInput.getNextKey();
                 processkey(key);
-                System.out.println(gameState);
             }
+            addHDU();
         }
     }
 
@@ -68,7 +68,7 @@ public class Engine {
      * @return the 2D TETile[][] representing the state of the world
      */
     public TETile[][] interactWithInputString(String input) throws IOException {
-        // TODO: Fill out this method so that it run the engine using the input
+        // it runs the engine using the input
         // passed in as an argument, and return a 2D tile representation of the
         // world that would have been drawn if the same inputs had been given
         // to interactWithKeyboard().
@@ -83,8 +83,10 @@ public class Engine {
         return finalWorldFrame;
     }
     /**
-     * process the input of N***S
-     * *** is the SEED number
+     * You have to option to use cheat code G to turn on godview
+     * otherwise you will have limited view
+     * The way to win is walk to the door
+     * The way to lose is not find the door within 2mins
      */
     private void processkey(char key) throws IOException {
         switch (gameState) {
@@ -121,6 +123,21 @@ public class Engine {
                     case(':') :
                         gameState = to_Quit;
                         break;
+                    case('G') :
+                        gameState = Godview;
+                        break;
+                    default:
+                        moveRoundLimited(key);
+                }
+                break;
+            case Godview:
+                switch (key) {
+                    case(':') :
+                        gameState = to_Quit;
+                        break;
+                    case('G') :
+                        gameState = Play;
+                        break;
                     default:
                         moveRound(key);
                 }
@@ -136,15 +153,10 @@ public class Engine {
                     gameState = Play;
                 }
                 break;
-            case Win:
-                displayEnding("You Win");
-                Gameactive = false;
-                System.exit(0);
-                break;
-            case Lose:
-                displayEnding("You Lose");
-                Gameactive = false;
-                System.exit(0);
+            case Win, Lose:
+                //endingdisplay & Gameactive = false & exit(0) in moveRound method for win
+                //endingdisplay & Gameactive = false & exit(0) in timeRemaing method for lose
+                //Actually, this case is not needed. 
                 break;
         }
     }
@@ -187,7 +199,7 @@ public class Engine {
             int width = RANDOM.nextInt(WIDTH / 8) + 4;
             int height = RANDOM.nextInt(HEIGHT / 8) + 4;
             int x = RANDOM.nextInt(WIDTH - width - 2) + 1;
-            int y = RANDOM.nextInt( HEIGHT - height) + 1;
+            int y = RANDOM.nextInt( HEIGHT - height - 2) + 1;
             Position p = new Position(x, y);
             Room room = new Room(width, height, p);
             th++;
@@ -391,7 +403,7 @@ public class Engine {
         finalWorldFrame[player.location.x][player.location.y] = player.symbol;
     }
     /**
-     * move Avatar per the input direction
+     * move Avatar in Godview per the input direction
      * in the future, if there are enemy or coins,
      * this method will deal all items turn here.
      */
@@ -399,31 +411,107 @@ public class Engine {
         player.move(dir, finalWorldFrame);
         if (finalWorldFrame[player.location.x][player.location.y].equals(Tileset.UNLOCKED_DOOR)) {
             gameState = Win;
+            displayEnding("You Win!");
+            Gameactive = false;
+            System.exit(0);
         }
         ter.renderFrame(finalWorldFrame);
 
     }
+    /**
+     * move Avatar in non-Godview
+     */
+    public void moveRoundLimited(Character dir) {
+        player.move(dir, finalWorldFrame);
+        if (finalWorldFrame[player.location.x][player.location.y].equals(Tileset.UNLOCKED_DOOR)) {
+            gameState = Win;
+        }
+        ter.renderFramelimited(finalWorldFrame, viewRange());
+    }
+    /**
+     * helper method for determine the 7x7 view square around the avatar
+     */
+    public HashSet<int[]> viewRange() {
+        int range_x = 3;
+        int range_y = 3;
+        Position temp = player.location;
 
+        HashSet<int[]> range = new HashSet<>();
+        for (int x = -range_x; x <= range_x; x++) {
+            for (int y = -range_y; y <= range_y; y++) {
+                if (isValid(temp.shift(x, y))){
+                    int[] locations = new int[2];
+                    locations[0] = temp.x + x;
+                    locations[1] = temp.y + y;
+                    range.add(locations);
+                }
+            }
+        }
+        return range;
+    }
     /**
      * add HUD at the top of the board.
      * 1. Show the tile that currently under the mouse pointer.
      * 2. add the real time and date on the right top corner
      */
     public void addHDU() {
-        // Add real-time and date on the right top corner
-        StdDraw.setPenColor(Color.WHITE);
-        LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String dateTimeString = now.format(formatter);
-        StdDraw.textRight(WIDTH - 1, HEIGHT - 1, dateTimeString);
-        Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
-        TETile tile =  finalWorldFrame[mouse.x][mouse.y];
-        String text = tile.description();
-        StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
-        StdDraw.show();
-        StdDraw.pause(10);
+        if (gameState.equals(Play)) {
+            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
+            if (!isValid(mouse)) {
+                return;
+            }
+            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
+            String text = tile.description();
+            ter.renderFramelimited(finalWorldFrame, viewRange(), text, remainingTime());
+        }
+        if (gameState.equals(Godview)) {
+            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
+            if (!isValid(mouse)) {
+                return;
+            }
+            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
+            String text = tile.description();
+            ter.renderFrame(finalWorldFrame, text, remainingTime());
+        }
+    }
+    /**
+     * this calculates the remaining Time to play,
+     * it there is remaining time, return remaining minutes and seconds
+     * if no remaining time, gameState change to Lose(i.e. Game over)
+     */
+    public long[] remainingTime() {
+        long[] time = new long[]{0, 0};
+        if (hasTime()) {
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            long remainingTime = START_TIME - elapsedTime;
+
+            // Convert remaining time to minutes and seconds
+            long remainingMinutes = (remainingTime / 1000) / 60;
+            long remainingSeconds = (remainingTime / 1000) % 60;
+            time[0] = remainingMinutes;
+            time[1] = remainingSeconds;
+        }
+        else {
+            gameState = Lose;
+            displayEnding("Gameover! Try again");
+            Gameactive = false;
+            System.exit(0);
+        }
+        return time;
+    }
+    public boolean hasTime() {
+        return (System.currentTimeMillis() - startTime < START_TIME);
     }
 
+
+    /**
+     * a helper method for addHDU
+     * to determine if mouse position is valid
+     * i.e. if it is within board limit
+     */
+    public boolean isValid(Position p) {
+        return p.x < WIDTH && p.x >= 0 && p.y < HEIGHT && p.y >= 0;
+    }
     /**
      * Display Menu for keyboard input
      */
@@ -533,6 +621,7 @@ public class Engine {
         connectRoom(finalWorldFrame);
         findDoor(finalWorldFrame);
         startAvatar();
+        startTime = System.currentTimeMillis();
         ter.renderFrame(finalWorldFrame);
     }
 
