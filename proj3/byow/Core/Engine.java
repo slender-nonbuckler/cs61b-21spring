@@ -1,5 +1,5 @@
 package byow.Core;
-import byow.InputDemo.*;
+import byow.Input.*;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
@@ -7,10 +7,12 @@ import edu.princeton.cs.introcs.StdDraw;
 
 
 import java.awt.*;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
+import static byow.Core.GameState.*;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -19,8 +21,9 @@ public class Engine {
     public static final int HEIGHT = 50;
     public static Random RANDOM;
     public static List<Room> roomList = new ArrayList<>();
-    private boolean GameState;
-    private boolean Gameactive;
+    private GameState gameState = Menu;
+    private Player player;
+    private boolean Gameactive = true;
     private static long SEED;
     private static int count; //room number range 20-35;
     public static TETile[][] finalWorldFrame;
@@ -29,8 +32,18 @@ public class Engine {
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
-    public void interactWithKeyboard() {
+    public void interactWithKeyboard() throws IOException {
+        DisplayMenu();
+        KeyBoardInputSource keyboardInput = new KeyBoardInputSource();
 
+        while (Gameactive) {
+            if (finalWorldFrame != null) addHDU();
+            if (keyboardInput.possibleNextInput()) {
+                char key = keyboardInput.getNextKey();
+                processkey(key);
+                System.out.println(gameState);
+            }
+        }
     }
 
     /**
@@ -54,7 +67,7 @@ public class Engine {
      * @param input the input string to feed to your program
      * @return the 2D TETile[][] representing the state of the world
      */
-    public TETile[][] interactWithInputString(String input) {
+    public TETile[][] interactWithInputString(String input) throws IOException {
         // TODO: Fill out this method so that it run the engine using the input
         // passed in as an argument, and return a 2D tile representation of the
         // world that would have been drawn if the same inputs had been given
@@ -73,16 +86,69 @@ public class Engine {
      * process the input of N***S
      * *** is the SEED number
      */
-    private void processkey(char key) {
-        if (key == 'N') GameState = true;
-        else if (key == 'S') {
-            GameState = false;
-            initializeGame();
-        }
-        else {
-            SEED = SEED * 10 + Character.getNumericValue(key);
+    private void processkey(char key) throws IOException {
+        switch (gameState) {
+            case Menu:
+                switch (key) {
+                    case 'N':
+                        gameState = Select_Seed;
+                        displaySeedMenu();
+                        break;
+                    case 'L':
+                        load_Game();
+                        gameState = Play;
+                        break;
+                    case 'Q':
+                        Gameactive = false;
+                        gameState = Saved;
+                        System.exit(0);
+                        break;
+                }
+                break;
+            case Select_Seed:
+                switch(key) {
+                    case 'S':
+                        gameState = Play;
+                        initializeGame();
+                        break;
+                    default:
+                        SEED = SEED * 10 + Character.getNumericValue(key);
+                        displaySeedMenu();
+                }
+                break;
+            case Play:
+                switch (key) {
+                    case(':') :
+                        gameState = to_Quit;
+                        break;
+                    default:
+                        moveRound(key);
+                }
+                break;
+            case to_Quit:
+                if (key == 'Q') {
+                    saveGame();
+                    Gameactive = false;
+                    gameState = Saved;
+                    System.exit(0);
+                }
+                else {
+                    gameState = Play;
+                }
+                break;
+            case Win:
+                displayEnding("You Win");
+                Gameactive = false;
+                System.exit(0);
+                break;
+            case Lose:
+                displayEnding("You Lose");
+                Gameactive = false;
+                System.exit(0);
+                break;
         }
     }
+
     /**
      * Fills the given 2D array of tiles with RANDOM tiles.
      * @param tiles
@@ -296,56 +362,48 @@ public class Engine {
                 break;
         }
 
-        tiles[x][y] = Tileset.LOCKED_DOOR;
+        tiles[x][y] = Tileset.UNLOCKED_DOOR;
     }
     /**
-     * iterate through the room supposed surrounding walls,
-     * if it is wall tile, it will be the door location.
+     * find a random floor location
+     * (to place the avatar in the beginning)
+     * this uses a different method than locating the door.
+     * keep picking a random cell in the board until find a floor cell.
+     * cons: might take a long time especially, floor area is small comparing with
+     * the whole board
      */
-    public void addAvatar(TETile[][] tiles) {
-        int roomNo = RANDOM.nextInt(roomList.size() - 1);
-        Room room = roomList.get(roomNo);
-        int minx = room.startP.x;
-        int miny = room.startP.y;
-        int maxx = room.startP.x + room.width - 1;
-        int maxy = room.startP.y + room.height - 1;
-        int x = 0;
-        int y = 0;
-        int dir = RANDOM.nextInt(3);
-        switch (dir) {
-            case 0:
-                x = minx;
-                y = miny + 1;
-                while (tiles[x][y] != Tileset.WALL) {
-                    y += 1; // not consider y outside of rectangle,
-                    // because there will be wall element at this line
-                }
-                break;
-            case 1:
-                x = minx + 1;
-                y = maxy;
-                while (tiles[x][y] != Tileset.WALL) {
-                    x += 1;
-                }
-                break;
-            case 2:
-                x = maxx;
-                y = maxy - 1;
-                while (tiles[x][y] != Tileset.WALL) {
-                    y -= 1;
-                }
-                break;
-            case 3:
-                x = maxx - 1;
-                y = miny;
-                while (tiles[x][y] != Tileset.WALL) {
-                    x -= 1;
-                }
-                break;
+    public Position findFloor() {
+        //see drawAllRoom method for the reason of those integers below
+        int x = RandomUtils.uniform(RANDOM, 1, WIDTH - 6);
+        int y = RandomUtils.uniform(RANDOM, 1, HEIGHT - 4);
+        while(!finalWorldFrame[x][y].equals(Tileset.FLOOR)) {
+            x = RandomUtils.uniform(RANDOM, 1, WIDTH - 6);
+            y = RandomUtils.uniform(RANDOM, 1, HEIGHT - 4);
         }
-
-        tiles[x][y] = Tileset.LOCKED_DOOR;
+        return new Position(x, y);
     }
+
+    /**
+     * add Avatar to the board;
+     */
+    public void startAvatar() {
+        player = new Player(findFloor());
+        finalWorldFrame[player.location.x][player.location.y] = player.symbol;
+    }
+    /**
+     * move Avatar per the input direction
+     * in the future, if there are enemy or coins,
+     * this method will deal all items turn here.
+     */
+    public void moveRound(Character dir) {
+        player.move(dir, finalWorldFrame);
+        if (finalWorldFrame[player.location.x][player.location.y].equals(Tileset.UNLOCKED_DOOR)) {
+            gameState = Win;
+        }
+        ter.renderFrame(finalWorldFrame);
+
+    }
+
     /**
      * add HUD at the top of the board.
      * 1. Show the tile that currently under the mouse pointer.
@@ -358,35 +416,124 @@ public class Engine {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String dateTimeString = now.format(formatter);
         StdDraw.textRight(WIDTH - 1, HEIGHT - 1, dateTimeString);
-        int count = 0;
-        while(!GameState) {
-            Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
-            TETile tile =  finalWorldFrame[mouse.x][mouse.y];
-            String text = tile.description();
-            StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
-            StdDraw.show();
-            count ++;
-            if (count == 100) GameState = true;
+        Position mouse = new Position((int)StdDraw.mouseX(), (int)StdDraw.mouseY());
+        TETile tile =  finalWorldFrame[mouse.x][mouse.y];
+        String text = tile.description();
+        StdDraw.textLeft(1, HEIGHT - 1, text);//show tile info on top left
+        StdDraw.show();
+        StdDraw.pause(10);
+    }
+
+    /**
+     * Display Menu for keyboard input
+     */
+    public void DisplayMenu() {
+        //Set up the canvas
+        StdDraw.setCanvasSize(WIDTH * 16, HEIGHT * 16);
+        StdDraw.setPenColor(Color.WHITE);
+        Font font = new Font("Monaco", Font.BOLD, 60);
+        StdDraw.setFont(font);
+        StdDraw.setXscale(0, WIDTH);
+        StdDraw.setYscale(0, HEIGHT);
+        StdDraw.clear(Color.BLACK);
+        StdDraw.enableDoubleBuffering();
+        //draw the title
+        StdDraw.text(WIDTH / 2, HEIGHT * 4 / 5, "CS61B: THE GAME");
+        // draw options
+        Font smallFont = new Font("Monaco", Font.BOLD, 30);
+        StdDraw.setFont(smallFont);
+        StdDraw.text(WIDTH / 2.0, HEIGHT * 0.40, "New Game (N)");
+        StdDraw.text(WIDTH / 2.0, HEIGHT * 0.35, "Load Game (L)");
+        StdDraw.text(WIDTH / 2.0, HEIGHT * 0.30, "Quit (Q)");
+        StdDraw.show();
+        //StdDraw.pause(10000);
+    }
+
+    /**
+     * Display seed Menu, it will display the seed number inserted
+     */
+    public void displaySeedMenu() {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.text(WIDTH / 2, HEIGHT / 2, "Enter A Random Seed Number");
+        StdDraw.text(WIDTH / 2, HEIGHT * 2 / 5, Long.toString(SEED));
+        StdDraw.text(WIDTH / 2, HEIGHT / 3, "When you ready to start , press S");
+        StdDraw.show();
+        StdDraw.pause(100);
+    }
+    /**
+     * Display endGame message, either win or lose the game
+     */
+    public void displayEnding(String message) {
+        StdDraw.clear(Color.BLACK);
+        Font font = new Font("Monaco", Font.BOLD, 60);
+        StdDraw.setFont(font);
+        StdDraw.text(WIDTH / 2, HEIGHT / 2, message);
+        StdDraw.show();
+        StdDraw.pause(2000);
+    }
+    /**
+     * Save Game
+     */
+    public void saveGame() throws IOException {
+        File f = new File("./save");
+        try {
+            if (!f.exists()) {
+                f.createNewFile();
+            }
+            FileOutputStream fs = new FileOutputStream(f);
+            ObjectOutputStream os = new ObjectOutputStream(fs);
+            os.writeObject(finalWorldFrame);
+            os.writeObject(ter);
+            os.writeObject(SEED);
+            os.writeObject(player);
+            os.writeObject(roomList);
+
+        } catch(FileNotFoundException e) {
+            System.out.println("File not found");
+            System.exit(0);
+        }
+        catch(IOException e) {
+            System.out.println(e);
+            System.exit(0);
         }
     }
 
+    /**
+     * Load game
+     */
+    public void load_Game() throws IOException {
+        File f = new File("./save");
+        if (f.exists()) {
+            try {
+                FileInputStream fs = new FileInputStream(f);
+                ObjectInputStream os = new ObjectInputStream(fs);
+                finalWorldFrame = (TETile[][]) os.readObject();
+                ter = (TERenderer) os.readObject();
+                player = (Player)  os.readObject();
+                SEED = (long) os.readObject();
+                //roomList = (ArrayList<Room>) os.readObject();
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            } catch (FileNotFoundException e) {
+                System.out.println("File not found");
+                System.exit(0);
+            } catch (IOException e) {
+                System.out.println(e);
+                System.exit(0);
+            }
+        }
+    }
     public void initializeGame() {
         RANDOM = new Random(SEED);
-        TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
         finalWorldFrame = new TETile[WIDTH][HEIGHT];
         fillWithNothing(finalWorldFrame);
-        //Position anchor = new Position(0, 0);
-        //Room room = new Room(5, 5, anchor);
-        //room.drawWall(finalWorldFrame,anchor);
-        //room.drawOneRoom(finalWorldFrame,anchor, 10, 10);
         count = RANDOM.nextInt(15) + 20;
         drawAllRoom(count, finalWorldFrame);
         connectRoom(finalWorldFrame);
         findDoor(finalWorldFrame);
+        startAvatar();
         ter.renderFrame(finalWorldFrame);
-        addHDU();
-
     }
 
 }
